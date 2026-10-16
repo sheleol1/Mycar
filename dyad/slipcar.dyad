@@ -1,0 +1,156 @@
+"""
+The car with a slipping wheel and a road gradient. Body speed and wheel surface speed are both
+reported in km/h, so wheelspin shows as the gap between them.
+"""
+component SlipCar
+  "Commanded engine torque"
+  tau_cmd = RealInput() {^tau_cmd}
+  "Road gradient, tan(alpha)"
+  grade = RealInput() {^grade}
+  "Road-friction multiplier"
+  mu_scale = RealInput() {^mu_scale}
+  "Vehicle speed in km/h"
+  v_kmh = RealOutput() {^v_kmh}
+  "Wheel surface speed, omega * radius, in km/h"
+  wheel_kmh = RealOutput() {^wheel_kmh}
+  engine = Engine() {^engine}
+  gear = RotationalComponents.Components.IdealGear(ratio = i) {^gear}
+  wheel_inertia = RotationalComponents.Components.Inertia(J = J_w) {^wheel_inertia}
+  wheel = SlipWheel1D(radius = r, F_z = m * g / 2) {^wheel}
+  body = GradeBody(m = m, g = g) {^body}
+  vsensor = TranslationalComponents.Sensors.VelocitySensor() {^vsensor}
+  to_kmh = BlockComponents.Math.Gain(k = 3.6) {^to_kmh}
+  wsensor = RotationalComponents.Sensors.VelocitySensor() {^wsensor}
+  wheel_to_kmh = BlockComponents.Math.Gain(k = r * 3.6) {^wheel_to_kmh}
+  "Engine mounts and gearbox housing"
+  rot_ground = RotationalComponents.Components.Fixed() {^rot_ground}
+  "Gear ratio"
+  parameter i::Real = 4.0
+  "Road wheel and tire inertia"
+  parameter J_w::MomentOfInertia = 1.0
+  "Wheel rolling radius, shared by the tire and the wheel-speed gain"
+  parameter r::Length = 0.31
+  "Vehicle mass; the driven axle carries half of it"
+  parameter m::Dyad.Mass = 1400
+  "Gravitational acceleration"
+  parameter g::Acceleration = 9.80665
+relations
+  connect(tau_cmd, engine.tau_cmd) {^id16}
+  connect(engine.spline, gear.spline_a) {^id17}
+  connect(gear.spline_b, wheel_inertia.spline_a) {^id18}
+  connect(engine.support, rot_ground.spline) {^id19}
+  connect(gear.support, rot_ground.spline) {^id20}
+  connect(wheel.flange, body.flange) {^id21}
+  connect(grade, body.grade) {^id22}
+  connect(vsensor.flange, wheel.flange) {^id23}
+  connect(vsensor.v, to_kmh.u) {^id24}
+  connect(to_kmh.y, v_kmh) {^id25}
+  connect(wsensor.spline, wheel.spline) {^id26}
+  connect(wsensor.w, wheel_to_kmh.u) {^id27}
+  connect(wheel_to_kmh.y, wheel_kmh) {^id28}
+  connect(wheel.mu_scale, mu_scale) {^id29}
+  connect(wheel_inertia.spline_b, wheel.spline) {^id30}
+metadata {
+  "_links": {
+    "tau_cmd": {
+      "Dyad": {"placement": {"diagram": {"x1": -50, "x2": 30, "y1": 820, "y2": 900}}}
+    },
+    "grade": {"Dyad": {"placement": {"diagram": {"x1": -30, "x2": 50, "y1": 50, "y2": 130}}}},
+    "mu_scale": {
+      "Dyad": {"placement": {"diagram": {"x1": -40, "x2": 40, "y1": 170, "y2": 250}}}
+    },
+    "v_kmh": {
+      "Dyad": {"placement": {"diagram": {"x1": 960, "x2": 1040, "y1": 620, "y2": 700}}}
+    },
+    "wheel_kmh": {
+      "Dyad": {"placement": {"diagram": {"x1": 960, "x2": 1040, "y1": 740, "y2": 820}}}
+    },
+    "engine": {
+      "Dyad": {"placement": {"diagram": {"x1": 70, "x2": 170, "y1": 450, "y2": 550}}}
+    },
+    "gear": {
+      "Dyad": {"placement": {"diagram": {"x1": 210, "x2": 310, "y1": 450, "y2": 550}}}
+    },
+    "wheel_inertia": {
+      "Dyad": {"placement": {"diagram": {"x1": 360, "x2": 460, "y1": 450, "y2": 550}}}
+    },
+    "wheel": {
+      "Dyad": {"placement": {"diagram": {"x1": 520, "x2": 620, "y1": 450, "y2": 550}}}
+    },
+    "body": {
+      "Dyad": {"placement": {"diagram": {"x1": 650, "x2": 750, "y1": 240, "y2": 340}}}
+    },
+    "vsensor": {
+      "Dyad": {"placement": {"diagram": {"x1": 730, "x2": 830, "y1": 610, "y2": 710}}}
+    },
+    "to_kmh": {
+      "Dyad": {"placement": {"diagram": {"x1": 870, "x2": 930, "y1": 630, "y2": 690}}}
+    },
+    "wsensor": {
+      "Dyad": {"placement": {"diagram": {"x1": 380, "x2": 480, "y1": 730, "y2": 830}}}
+    },
+    "wheel_to_kmh": {
+      "Dyad": {"placement": {"diagram": {"x1": 560, "x2": 660, "y1": 730, "y2": 830}}}
+    },
+    "rot_ground": {
+      "Dyad": {"placement": {"diagram": {"x1": 70, "x2": 170, "y1": 690, "y2": 790}}}
+    },
+    "id16": {
+      "Dyad": {
+        "edges": [{"S": 1, "M": [{"x": 51, "y": 860}, {"x": 51, "y": 500}], "E": 2}],
+        "path": {}
+      }
+    },
+    "id17": {"Dyad": {"edges": [{"S": 1, "M": [], "E": 2}], "path": {}}},
+    "id18": {"Dyad": {"edges": [{"S": 1, "M": [], "E": 2}], "path": {}}},
+    "id19": {"Dyad": {"edges": [{"S": 1, "M": [], "E": 2}], "path": {}}},
+    "id20": {
+      "Dyad": {
+        "edges": [{"S": 1, "M": [{"x": 260, "y": 620}, {"x": 120, "y": 620}], "E": 2}],
+        "path": {}
+      }
+    },
+    "id21": {
+      "Dyad": {
+        "edges": [{"S": 1, "M": [{"x": 825, "y": 500}, {"x": 825, "y": 290}], "E": 2}],
+        "path": {}
+      }
+    },
+    "id22": {
+      "Dyad": {
+        "edges": [{"S": 1, "M": [{"x": 600, "y": 90}, {"x": 600, "y": 290}], "E": 2}],
+        "path": {}
+      }
+    },
+    "id23": {
+      "Dyad": {
+        "edges": [{"S": 1, "M": [{"x": 670, "y": 660}, {"x": 670, "y": 500}], "E": 2}],
+        "path": {}
+      }
+    },
+    "id24": {"Dyad": {"edges": [{"S": 1, "M": [], "E": 2}], "path": {}}},
+    "id25": {"Dyad": {"edges": [{"S": 1, "M": [], "E": 2}], "path": {}}},
+    "id26": {
+      "Dyad": {
+        "edges": [
+          {
+            "S": 1,
+            "M": [{"x": 330, "y": 780}, {"x": 330, "y": 630}, {"x": 520, "y": 630}],
+            "E": 2
+          }
+        ],
+        "path": {}
+      }
+    },
+    "id27": {"Dyad": {"edges": [{"S": 1, "M": [], "E": 2}], "path": {}}},
+    "id28": {"Dyad": {"edges": [{"S": 1, "M": [], "E": 2}], "path": {}}},
+    "id29": {
+      "Dyad": {
+        "edges": [{"S": 1, "M": [{"x": 590, "y": 450}, {"x": 590, "y": 210}], "E": 2}],
+        "path": {}
+      }
+    },
+    "id30": {"Dyad": {"edges": [{"S": 1, "M": [], "E": 2}], "path": {}}}
+  }
+}
+end

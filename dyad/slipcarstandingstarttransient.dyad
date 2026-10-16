@@ -1,0 +1,5 @@
+"Standing start on a slippery road over five seconds."
+analysis SlipCarStandingStartTransient
+  extends Dyad.TransientAnalysis(stop = 5)
+  model = mycar.SlipCarStandingStart()
+end
