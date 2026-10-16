@@ -1,0 +1,5 @@
+"Evaluates the tyre friction curve over a two-second slip sweep."
+analysis TireFrictionCurveSweep
+  extends Dyad.TransientAnalysis(stop = 2)
+  model = mycar.TestTireFrictionCurve()
+end

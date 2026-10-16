@@ -1,0 +1,32 @@
+"""
+Tire friction coefficient against longitudinal slip: rises to the adhesion peak `mu_A` at
+`sAdhesion`, falls to the sliding level `mu_S` at `sSlide`, and stays there. Point-symmetric, so
+braking slip gives negative friction.
+"""
+component TireFrictionCurve
+  "Longitudinal slip ratio, negative while braking"
+  kappa = RealInput()
+  "Friction coefficient, carrying the sign of the slip"
+  mu = RealOutput()
+  "Slip ratio at peak adhesion"
+  parameter sAdhesion::Real = 0.04
+  "Slip ratio at the sliding plateau"
+  parameter sSlide::Real = 0.12
+  "Peak adhesion coefficient"
+  parameter mu_A::Real = 1.0
+  "Sliding friction coefficient"
+  parameter mu_S::Real = 0.7
+  "Slip magnitude"
+  variable slip::Real
+  "Friction magnitude"
+  variable mu_abs::Real
+relations
+  slip = abs(kappa)
+  # -0.5·x³ + 1.5·x maps [-1, 1] onto [-1, 1] with zero slope at both ends, so the curve stays
+  # continuously differentiable across the segment joins.
+  mu_abs = ifelse(slip <= sAdhesion,
+    mu_A * (-0.5 * (slip / sAdhesion) ^ 3 + 1.5 * (slip / sAdhesion)),
+    ifelse(slip >= sSlide, mu_S,
+      (mu_A + mu_S) / 2 + (mu_S - mu_A) / 2 * (-0.5 * ((slip - (sAdhesion + sSlide) / 2) * 2 / (sSlide - sAdhesion)) ^ 3 + 1.5 * ((slip - (sAdhesion + sSlide) / 2) * 2 / (sSlide - sAdhesion)))))
+  mu = sign(kappa) * mu_abs
+end
