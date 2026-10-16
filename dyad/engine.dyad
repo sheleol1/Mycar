@@ -1,25 +1,43 @@
-"short Engine component description"
+"Engine model with transport delay, gradual torque buildup and a torque limit."
 component Engine
+  "Limits delivered torque to the range 0 to T_max."
   limiter = BlockComponents.Nonlinear.Limiter(y_max = T_max, y_min = 0) {^limiter}
+
+  "Output shaft: connects the engine to the rotating load or driveline."
   spline = Dyad.Spline() {^spline}
-  spline1 = Dyad.Spline() {^spline1}
-  torquesource = RotationalComponents.Sources.TorqueSource() {^torquesource}
-  lag = BlockComponents.Continuous.FirstOrder(T = tau_e, x = initial 0) {^lag}
-  dealy = BlockComponents.Nonlinear.PadeDelay(n = 6, m = 5, delayTime = theta_e) {^dealy}
+
+  "Engine housing connection: transfers reaction torque to the mounting."
+  support = Dyad.Spline() {^support}
+
+  "First-order lag: represents gradual torque buildup due to manifold filling."
+  lag = BlockComponents.Continuous.FirstOrder(T = tau_e) {^lag}
+
+  "Input signal: requested engine torque in N·m."
   tau_cmd = Dyad.RealInput() {^tau_cmd}
-  "Injection-to-torque transport delay"
+
+  "Approximates the transport delay between the torque request and engine response."
+  delay = BlockComponents.Nonlinear.PadeDelay(n = 6, m = 5, delayTime = theta_e) {^delay}
+
+  "Applies the calculated mechanical torque between the output shaft and housing."
+  torque = RotationalComponents.Sources.TorqueSource() {^torque}
+
+  "Transport delay in seconds; fixed when the model is compiled."
   structural parameter theta_e::Time = 0.3
-  "Manifold-filling first-order lag"
+
+  "Torque buildup time constant in seconds."
   parameter tau_e::Time = 0.3
-  "Peak deliverable torque"
+
+  "Maximum available engine torque in N·m."
   parameter T_max::Torque = 150
+
 relations
-  connect(dealy.y, lag.u) {^id8}
+  connect(delay.y, lag.u) {^id8}
   connect(lag.y, limiter.u) {^id9}
-  connect(limiter.y, torquesource.tau) {^id10}
-  connect(torquesource.support, spline1) {^id11}
-  connect(torquesource.spline, spline) {^id12}
-  connect(dealy.u, tau_cmd) {^id13}
+  connect(limiter.y, torque.tau) {^id10}
+  connect(torque.support, support) {^id11}
+  connect(torque.spline, spline) {^id12}
+  connect(delay.u, tau_cmd) {^id13}
+
 metadata {
   "Dyad": {
     "experiments": {},
@@ -47,27 +65,33 @@ metadata {
     "spline": {
       "Dyad": {"placement": {"diagram": {"x1": 960, "x2": 1040, "y1": 460, "y2": 540}}}
     },
-    "spline1": {
-      "Dyad": {"placement": {"diagram": {"x1": 460, "x2": 540, "y1": 970, "y2": 1050}}}
-    },
-    "torquesource": {
-      "Dyad": {"placement": {"diagram": {"x1": 540, "x2": 640, "y1": 450, "y2": 550}}}
+    "support": {
+      "Dyad": {"placement": {"diagram": {"x1": 450, "x2": 550, "y1": 950, "y2": 1050}}}
     },
     "lag": {
       "Dyad": {"placement": {"diagram": {"x1": 240, "x2": 340, "y1": 450, "y2": 550}}}
     },
-    "dealy": {
-      "Dyad": {"placement": {"diagram": {"x1": 90, "x2": 190, "y1": 450, "y2": 550}}}
-    },
     "tau_cmd": {
       "Dyad": {"placement": {"diagram": {"x1": -20, "x2": 60, "y1": 460, "y2": 540}}}
+    },
+    "delay": {
+      "Dyad": {"placement": {"diagram": {"x1": 90, "x2": 190, "y1": 450, "y2": 550}}}
+    },
+    "torque": {
+      "Dyad": {"placement": {"diagram": {"x1": 540, "x2": 640, "y1": 450, "y2": 550}}}
     },
     "id8": {"Dyad": {"edges": [{"S": 1, "M": [], "E": 2}], "path": {}}},
     "id9": {"Dyad": {"edges": [{"S": 1, "M": [], "E": 2}], "path": {}}},
     "id10": {"Dyad": {"edges": [{"S": 1, "M": [], "E": 2}], "path": {}}},
     "id11": {
       "Dyad": {
-        "edges": [{"S": 1, "M": [{"x": 590, "y": 960}, {"x": 500, "y": 960}], "E": 2}],
+        "edges": [
+          {
+            "S": 1,
+            "M": [{"x": 590, "y": 960}, {"x": 500, "y": 960}],
+            "E": 2
+          }
+        ],
         "path": {}
       }
     },

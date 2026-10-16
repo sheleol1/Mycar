@@ -72,6 +72,7 @@ short EngineStep component description
   ### Guesses
 
   ### Initialization Equations
+  push!(__initialization_eqs, engine.lag.x ~ 0)
 
   ### Assertions
   __assertions = []
@@ -79,7 +80,7 @@ short EngineStep component description
   ### Equations
   push!(__eqs, connect(cmd.y, engine.tau_cmd))
   push!(__eqs, connect(load.spline_a, engine.spline))
-  push!(__eqs, connect(mounts.spline, engine.spline1))
+  push!(__eqs, connect(mounts.spline, engine.support))
 
   # Return completely constructed System
   return System(__eqs, t, __vars, __params; systems=__systems, initial_conditions=__initial_conditions, guesses=__guesses, name, initialization_eqs=__initialization_eqs, bindings=__bindings, assertions=__assertions)
