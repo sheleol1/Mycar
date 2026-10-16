@@ -26,4 +26,7 @@ include("EngineStep_test.jl")
 include("Engine_test.jl")
 include("Hello_test.jl")
 include("MyTest_test.jl")
+include("WheeledCarFullThrottle_test.jl")
+include("WheeledCar_test.jl")
+include("WheeledDriveline_test.jl")
 end

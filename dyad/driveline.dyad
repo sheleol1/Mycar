@@ -1,6 +1,6 @@
 "Gearbox and rolling wheel: engine shaft in, tractive force on the body out."
 component Driveline
-  "From the egnine"
+  "From the engine"
   spline = Dyad.Spline() {^spline}
   "Gearbox housing"
   support_r = Dyad.Spline() {^support_r}
