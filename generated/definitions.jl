@@ -15,7 +15,12 @@ if isfile(joinpath((@__DIR__) |> Base.dirname, "dyad", "definitions.jl"))
   include(joinpath((@__DIR__) |> Base.dirname, "dyad", "definitions.jl"))
 end
 
+import BlockComponents
+import DyadData
 import DyadInterface
+import RotationalComponents
+import ThermalComponents
+import TranslationalComponents
 @doc Markdown.doc"""
 This connector represents an electrical pin with voltage and current as the potential and flow variables, respectively.
 """
@@ -194,6 +199,28 @@ component.
 end
 
 
+include("Body_definition.jl")
+include("CarFullThrottleTransient_definition.jl")
+include("CarFullThrottle_definition.jl")
+include("Car_definition.jl")
+include("Driveline_definition.jl")
+include("EngineStepAnalysis_definition.jl")
+include("EngineStepTransient_definition.jl")
+include("EngineStep_definition.jl")
+include("Engine_definition.jl")
+include("GradeBody_definition.jl")
+include("GradeForce_definition.jl")
 include("Hello_definition.jl")
 include("MyTest_definition.jl")
+include("SlipCarStandingStartTransient_definition.jl")
+include("SlipCarStandingStart_definition.jl")
+include("SlipCar_definition.jl")
+include("SlipWheel1D_definition.jl")
+include("TestTireFrictionCurve_definition.jl")
+include("TireFrictionCurveSweep_definition.jl")
+include("TireFrictionCurve_definition.jl")
+include("WheeledCarFullThrottleTransient_definition.jl")
+include("WheeledCarFullThrottle_definition.jl")
+include("WheeledCar_definition.jl")
+include("WheeledDriveline_definition.jl")
 include("World_definition.jl")

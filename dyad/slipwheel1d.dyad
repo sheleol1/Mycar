@@ -1,0 +1,52 @@
+"Wheel with longitudinal tyre slip: shaft rotation produces traction."
+component SlipWheel1D
+  "Wheel shaft connection."
+  spline = Dyad.Spline() {^spline}
+  "Mechanical connection to the car body."
+  flange = Dyad.Flange() {^flange}
+  "Road grip multiplier: 1 for dry, 0.2 for slippery."
+  mu_scale = Dyad.RealInput() {^mu_scale}
+  "Friction coefficient as a function of slip."
+  curve = mycar.TireFrictionCurve() {^curve}
+  "Wheel rolling radius in metres."
+  parameter radius::Length = 0.31
+  "Normal load on the driven axle in newtons."
+  parameter F_z::Force = 6864.655
+  "Speed floor preventing division by zero at standstill."
+  parameter v_eps::Velocity = 0.5
+  "Wheel angular speed."
+  variable omega::AngularVelocity
+  "Vehicle forward speed."
+  variable v::Velocity
+  "Longitudinal slip ratio."
+  variable kappa::Real
+  "Signed friction coefficient after road scaling."
+  variable mu::Real
+  "Longitudinal tyre force."
+  variable F_x::Force
+relations
+  omega = der(spline.phi)
+  v = der(flange.s)
+  kappa = (omega * radius - v) / max(abs(v), v_eps)
+  curve.kappa = kappa
+  mu = mu_scale * curve.mu
+  F_x = mu * F_z
+  flange.f = -F_x
+  0 = spline.tau + radius * flange.f
+metadata {
+  "_links": {
+    "spline": {
+      "Dyad": {"placement": {"diagram": {"x1": -40, "x2": 40, "y1": 460, "y2": 540}}}
+    },
+    "flange": {
+      "Dyad": {"placement": {"diagram": {"x1": 960, "x2": 1040, "y1": 460, "y2": 540}}}
+    },
+    "mu_scale": {
+      "Dyad": {"placement": {"diagram": {"x1": 480, "x2": 560, "y1": -40, "y2": 40}}}
+    },
+    "curve": {
+      "Dyad": {"placement": {"diagram": {"x1": 450, "x2": 550, "y1": 450, "y2": 550}}}
+    }
+  }
+}
+end

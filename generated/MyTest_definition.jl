@@ -5,11 +5,21 @@
 
 
 @doc Markdown.doc"""
-   MyTest(; name)
+   MyTest(; name, D1)
 
 short MyTest component description
+
+## Parameters:
+
+| Name         | Description                         | Units  |   Default value |
+| ------------ | ----------------------------------- | ------ | --------------- |
+| `D1`         |                          | --  |   10 |
+
+## Connectors
+
+ * `realinput` - This connector represents a real signal as an input to a component ([`RealInput`](@ref))
 """
-@component function MyTest(; name = nothing, kwargs...)
+@component function MyTest(; name = nothing, D1=Float64(10), kwargs...)
   isnothing(name) && throw(ArgumentError("""
     The `name` keyword must be provided. Please consider using the `@named` macro,
     like so:
@@ -40,10 +50,14 @@ short MyTest component description
   ### Deferred assignment (default values that depend on final parameters)
 
   ### Symbolic Parameters
+  __local__D1 = D1
+  append!(__params, @parameters (D1::Real))
+  __initial_conditions[D1] = __local__D1
 
   ### Final Parameters (assignments)
 
   ### Final Path Parameters
+  append!(__vars, @variables (realinput(t)::Real), [input = true])
 
   ### Variables (declarations)
 

@@ -18,6 +18,22 @@ end
 include("test_internals.jl")
 
 @testset "`mycar`" begin
+include("Body_test.jl")
+include("CarFullThrottle_test.jl")
+include("Car_test.jl")
+include("Driveline_test.jl")
+include("EngineStep_test.jl")
+include("Engine_test.jl")
+include("GradeBody_test.jl")
+include("GradeForce_test.jl")
 include("Hello_test.jl")
 include("MyTest_test.jl")
+include("SlipCarStandingStart_test.jl")
+include("SlipCar_test.jl")
+include("SlipWheel1D_test.jl")
+include("TestTireFrictionCurve_test.jl")
+include("TireFrictionCurve_test.jl")
+include("WheeledCarFullThrottle_test.jl")
+include("WheeledCar_test.jl")
+include("WheeledDriveline_test.jl")
 end
