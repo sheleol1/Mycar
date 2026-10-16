@@ -1,0 +1,127 @@
+"Vehicle body on a slope, with aerodynamic drag and rolling resistance."
+component GradeBody
+  "Driving-force connection from the driveline."
+  flange = Dyad.Flange() {^flange}
+  "Road gradient: positive uphill; 0.02 means 2 percent."
+  grade = Dyad.RealInput() {^grade}
+  "Vehicle mass."
+  mass = TranslationalComponents.Components.Mass(m = m) {^mass}
+  "Aerodynamic resistance opposing vehicle motion."
+  drag = TranslationalComponents.Sources.QuadraticSpeedDependentForce(ForceDirection = false, f_nominal = -0.5 * rho * CdA * v_nominal ^ 2, v_nominal = v_nominal) {^drag}
+  "Resistance caused by tyre rolling losses."
+  rolling = TranslationalComponents.Components.RollingResistance(fWeight = m * g) {^rolling}
+  "Supplies the rolling resistance coefficient."
+  cr_const = BlockComponents.Sources.Constant(k = f_r) {^cr_const}
+  "Gravity force acting along the sloping road."
+  gradeforce = mycar.GradeForce(m = m, g = g) {^gradeforce}
+  "Fixed reference for the force-component supports."
+  ground = TranslationalComponents.Components.Fixed() {^ground}
+  "Vehicle mass in kg."
+  parameter m::Dyad.Mass = 1400
+  "Drag coefficient multiplied by frontal area, in m²."
+  parameter CdA::Area = 0.63
+  "Air density in kg/m³."
+  parameter rho::Density = 1.2
+  "Rolling resistance coefficient."
+  parameter f_r::Real = 0.012
+  "Gravitational acceleration in m/s²."
+  parameter g::Acceleration = 9.80665
+  "Reference speed for specifying aerodynamic drag, in m/s."
+  parameter v_nominal::Velocity = 30
+relations
+  connect(flange, mass.flange_a, rolling.flange, drag.flange, gradeforce.flange) {^id9}
+  connect(ground.flange, rolling.support, drag.support, gradeforce.support) {^id10}
+  connect(cr_const.y, rolling.cr) {^id11}
+  connect(grade, rolling.inclination, gradeforce.grade) {^id12}
+metadata {
+  "Dyad": {
+    "experiments": {},
+    "tests": {},
+    "labels": [
+      {
+        "label": "$(instance)",
+        "x": 500,
+        "y": 1100,
+        "rot": 0,
+        "layer": "icon",
+        "attrs": {}
+      }
+    ],
+    "icons": {"default": "dyad://Dyad/Default.svg"},
+    "path": {},
+    "doc": {"behavior": true},
+    "deprecated": null,
+    "panel": {}
+  },
+  "_links": {
+    "flange": {
+      "Dyad": {"placement": {"diagram": {"x1": 960, "x2": 1040, "y1": 460, "y2": 540}}}
+    },
+    "grade": {
+      "Dyad": {"placement": {"diagram": {"x1": -40, "x2": 40, "y1": 460, "y2": 540}}}
+    },
+    "mass": {
+      "Dyad": {"placement": {"diagram": {"x1": 750, "x2": 850, "y1": 450, "y2": 550}}}
+    },
+    "drag": {
+      "Dyad": {"placement": {"diagram": {"x1": 330, "x2": 430, "y1": 460, "y2": 560}}}
+    },
+    "rolling": {
+      "Dyad": {"placement": {"diagram": {"x1": 250, "x2": 350, "y1": 240, "y2": 340}}}
+    },
+    "cr_const": {"Dyad": {"placement": {"diagram": {"x1": 30, "x2": 130, "y1": 30, "y2": 130}}}},
+    "gradeforce": {
+      "Dyad": {"placement": {"diagram": {"x1": 350, "x2": 450, "y1": 700, "y2": 800}}}
+    },
+    "ground": {
+      "Dyad": {"placement": {"diagram": {"x1": 450, "x2": 550, "y1": 950, "y2": 1050}}}
+    },
+    "id9": {
+      "Dyad": {
+        "edges": [
+          {"S": 1, "M": [], "E": -1},
+          {"S": 2, "M": [], "E": -1},
+          {"S": 3, "M": [{"x": 650, "y": 290}], "E": -1},
+          {
+            "S": 4,
+            "M": [{"x": 600, "y": 510}, {"x": 600, "y": 450}, {"x": 650, "y": 450}],
+            "E": -1
+          },
+          {"S": 5, "M": [{"x": 650, "y": 750}], "E": -1}
+        ],
+        "junctions": [{"x": 650, "y": 500}],
+        "path": {}
+      }
+    },
+    "id10": {
+      "Dyad": {
+        "edges": [
+          {"S": 1, "M": [], "E": -1},
+          {"S": 2, "M": [{"x": 300, "y": 380}, {"x": 500, "y": 380}], "E": -1},
+          {"S": 3, "M": [{"x": 380, "y": 600}, {"x": 500, "y": 600}], "E": -1},
+          {"S": 4, "M": [{"x": 400, "y": 850}, {"x": 500, "y": 850}], "E": -1}
+        ],
+        "junctions": [{"x": 500, "y": 900}],
+        "path": {}
+      }
+    },
+    "id11": {
+      "Dyad": {
+        "edges": [{"S": 1, "M": [{"x": 210, "y": 80}, {"x": 210, "y": 260}], "E": 2}],
+        "path": {}
+      }
+    },
+    "id12": {
+      "Dyad": {
+        "edges": [
+          {"S": 1, "M": [], "E": -1},
+          {"S": -1, "M": [{"x": 220, "y": 315}], "E": 2},
+          {"S": -1, "M": [{"x": 220, "y": 750}], "E": 3}
+        ],
+        "junctions": [{"x": 220, "y": 500}],
+        "path": {}
+      }
+    }
+  }
+}
+end
