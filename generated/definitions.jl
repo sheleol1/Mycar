@@ -199,6 +199,10 @@ component.
 end
 
 
+include("Body_definition.jl")
+include("CarFullThrottleTransient_definition.jl")
+include("CarFullThrottle_definition.jl")
+include("Car_definition.jl")
 include("Driveline_definition.jl")
 include("EngineStepAnalysis_definition.jl")
 include("EngineStepTransient_definition.jl")

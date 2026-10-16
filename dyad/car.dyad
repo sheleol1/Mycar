@@ -1,0 +1,140 @@
+"Car on a flat road: requested engine torque in, vehicle speed in km/h out."
+component Car
+  "Requested engine torque in N·m."
+  tau_cmd = Dyad.RealInput() {^tau_cmd}
+  "Measured vehicle speed in km/h."
+  v_kmh = Dyad.RealOutput() {^v_kmh}
+  "Engine with transport delay, gradual response and torque limitation."
+  engine = mycar.Engine() {^engine}
+  "Gearbox and ideal rolling wheel: converts shaft torque into driving force."
+  driveline = mycar.Driveline() {^driveline}
+  "Vehicle mass with aerodynamic drag and rolling resistance."
+  body = mycar.Body() {^body}
+  "Measures the body's straight-line velocity in m/s."
+  vsensor = TranslationalComponents.Sensors.VelocitySensor() {^vsensor}
+  "Converts velocity from m/s to km/h."
+  to_kmh = BlockComponents.Math.Gain(k = 3.6) {^to_kmh}
+  "Fixed rotational reference for the engine housing and driveline supports."
+  rot_ground = RotationalComponents.Components.Fixed() {^rot_ground}
+  "Fixed translational reference representing the road beneath the wheel."
+  trans_ground = TranslationalComponents.Components.Fixed() {^trans_ground}
+relations
+  connect(tau_cmd, engine.tau_cmd) {^id10}
+  connect(engine.spline, driveline.spline) {^id11}
+  connect(driveline.support_t, trans_ground.flange) {^id13}
+  connect(vsensor.flange, body.flange, driveline.flange) {^id14}
+  connect(vsensor.v, to_kmh.u) {^id15}
+  connect(to_kmh.y, v_kmh) {^id16}
+  connect(rot_ground.spline, engine.support, driveline.support_r) {^id17}
+metadata {
+  "_links": {
+    "tau_cmd": {
+      "Dyad": {"placement": {"diagram": {"x1": -40, "x2": 60, "y1": 450, "y2": 550}}}
+    },
+    "v_kmh": {
+      "Dyad": {"placement": {"diagram": {"x1": 980, "x2": 1080, "y1": 450, "y2": 550}}}
+    },
+    "engine": {
+      "Dyad": {"placement": {"diagram": {"x1": 130, "x2": 230, "y1": 450, "y2": 550}}}
+    },
+    "driveline": {
+      "Dyad": {"placement": {"diagram": {"x1": 310, "x2": 410, "y1": 450, "y2": 550}}}
+    },
+    "body": {
+      "Dyad": {"placement": {"diagram": {"x1": 500, "x2": 600, "y1": 450, "y2": 550}}}
+    },
+    "vsensor": {
+      "Dyad": {"placement": {"diagram": {"x1": 620, "x2": 720, "y1": 210, "y2": 310}}}
+    },
+    "to_kmh": {
+      "Dyad": {"placement": {"diagram": {"x1": 780, "x2": 880, "y1": 210, "y2": 310}}}
+    },
+    "rot_ground": {
+      "Dyad": {"placement": {"diagram": {"x1": 130, "x2": 230, "y1": 780, "y2": 880}}}
+    },
+    "trans_ground": {
+      "Dyad": {"placement": {"diagram": {"x1": 360, "x2": 460, "y1": 760, "y2": 860}}}
+    },
+        "id10": {
+      "Dyad": {
+        "edges": [{"S": 1, "M": [], "E": 2}],
+        "path": {}
+      }
+    },
+    "id11": {
+      "Dyad": {
+        "edges": [{"S": 1, "M": [], "E": 2}],
+        "path": {}
+      }
+    },
+    "id13": {
+      "Dyad": {
+        "edges": [
+          {
+            "S": 1,
+            "M": [{"x": 374, "y": 660}, {"x": 410, "y": 660}],
+            "E": 2
+          }
+        ],
+        "path": {}
+      }
+    },
+    "id14": {
+      "Dyad": {
+        "edges": [
+          {"S": 1, "M": [{"x": 510, "y": 260}], "E": -1},
+          {
+            "S": -1,
+            "M": [
+              {"x": 510, "y": 360},
+              {"x": 660, "y": 360},
+              {"x": 660, "y": 500}
+            ],
+            "E": 2
+          },
+          {
+            "S": 3,
+            "M": [{"x": 450, "y": 500}, {"x": 450, "y": 340}],
+            "E": -1
+          }
+        ],
+        "junctions": [{"x": 510, "y": 340}],
+        "path": {}
+      }
+    },
+    "id15": {
+      "Dyad": {
+        "edges": [{"S": 1, "M": [], "E": 2}],
+        "path": {}
+      }
+    },
+    "id16": {
+      "Dyad": {
+        "edges": [
+          {
+            "S": 1,
+            "M": [{"x": 940, "y": 260}, {"x": 940, "y": 500}],
+            "E": 2
+          }
+        ],
+        "path": {}
+      }
+    },
+    "id17": {
+      "Dyad": {
+        "edges": [
+          {"S": 1, "M": [], "E": -1},
+          {"S": -1, "M": [], "E": 2},
+          {
+            "S": 3,
+            "M": [{"x": 351, "y": 660}],
+            "E": -1
+          }
+        ],
+        "junctions": [{"x": 180, "y": 660}],
+        "path": {}
+      }
+    }
+  }
+}
+end
