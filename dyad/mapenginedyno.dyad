@@ -1,0 +1,80 @@
+component MapEngineDyno
+  parameter rpm::Real = 3080.0
+  parameter pedal_initial::Real = 0.1034
+  parameter pedal_final::Real = 0.12
+  parameter t_step::Time = 1.0
+  parameter p_m0::Pressure = 47829.1
+  pedal = BlockComponents.Sources.Step(height = pedal_final - pedal_initial, offset = pedal_initial, start_time = t_step) {^pedal}
+  engine = MapEngine() {^engine}
+  mounts = RotationalComponents.Components.Fixed() {^mounts}
+  dyno = RotationalComponents.Sources.VelocitySource() {^dyno}
+  speed = BlockComponents.Sources.Ramp(offset = rpm * pi / 30, height = (800 - rpm) * pi / 30, start_time = 2, duration = 3) {^speed}
+relations
+  connect(pedal.y, engine.pedal) {^id6}
+  connect(speed.y, dyno.w_ref) {^id7}
+  connect(engine.spline, dyno.spline) {^id8}
+  connect(engine.support, mounts.spline) {^id9}
+  connect(dyno.support, mounts.spline) {^id10}
+  initial dyno.phi = 0
+  initial engine.air.manifold.p = p_m0
+metadata {
+  "_links": {
+    "pedal": {
+      "Dyad": {"placement": {"diagram": {"x1": 20, "x2": 120, "y1": 160, "y2": 260}}}
+    },
+    "engine": {
+      "Dyad": {"placement": {"diagram": {"x1": 155, "x2": 255, "y1": 190, "y2": 290}}}
+    },
+    "mounts": {
+      "Dyad": {"placement": {"diagram": {"x1": 400, "x2": 500, "y1": 280, "y2": 380}}}
+    },
+    "dyno": {
+      "Dyad": {"placement": {"diagram": {"x1": 285, "x2": 385, "y1": 70, "y2": 170}}}
+    },
+    "speed": {
+      "Dyad": {"placement": {"diagram": {"x1": 150, "x2": 250, "y1": 70, "y2": 170}}}
+    },
+    "id6": {"Dyad": {"edges": [{"S": 1, "M": [], "E": 2}], "path": {}}},
+    "id7": {"Dyad": {"edges": [{"S": 1, "M": [], "E": 2}], "path": {}}},
+    "id8": {
+      "Dyad": {
+        "edges": [{"S": 1, "M": [{"x": 460, "y": 215}, {"x": 460, "y": 120}], "E": 2}],
+        "path": {}
+      }
+    },
+    "id9": {
+      "Dyad": {
+        "edges": [
+          {"S": 1, "M": [{"x": 295, "y": 235}, {"x": 295, "y": 260}], "E": -1},
+          {"S": -1, "M": [{"x": 450, "y": 260}], "E": 2}
+        ],
+        "junctions": [{"x": 400, "y": 260}],
+        "path": {}
+      }
+    },
+    "id10": {
+      "Dyad": {
+        "edges": [
+          {
+            "S": 1,
+            "M": [{"x": 400, "y": 170}, {"x": 400, "y": 230}, {"x": 450, "y": 230}],
+            "E": 2
+          }
+        ],
+        "path": {}
+      }
+    }
+  }
+}
+end
+
+analysis MapEngineDynoTransient
+  extends TransientAnalysis(stop = 2.0, saveat = 0.001)
+  parameter rpm::Real = 3080.0
+  parameter pedal_initial::Real = 0.1034
+  parameter pedal_final::Real = 0.12
+  parameter t_step::Time = 1.0
+  parameter p_m0::Pressure = 47829.1
+  model = MapEngineDyno(rpm = rpm, pedal_initial = pedal_initial, pedal_final = pedal_final, t_step = t_step, p_m0 = p_m0)
+relations
+end

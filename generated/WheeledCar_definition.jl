@@ -5,7 +5,7 @@
 
 
 @doc Markdown.doc"""
-   WheeledCar(; name)
+   WheeledCar(; name, __overrides)
 
 Car on a flat road: requested engine torque in, vehicle speed in km/h out.
 
@@ -14,7 +14,7 @@ Car on a flat road: requested engine torque in, vehicle speed in km/h out.
  * `tau_cmd` - This connector represents a real signal as an input to a component ([`RealInput`](@ref))
  * `v_kmh` - This connector represents a real signal as an output from a component ([`RealOutput`](@ref))
 """
-@component function WheeledCar(; name = nothing, kwargs...)
+@component function WheeledCar(; name = nothing, __overrides = Dict{String, Any}())
   isnothing(name) && throw(ArgumentError("""
     The `name` keyword must be provided. Please consider using the `@named` macro,
     like so:
@@ -22,7 +22,7 @@ Car on a flat road: requested engine torque in, vehicle speed in km/h out.
     @named model = WheeledCar()
   """))
 
-  __overrides = __build_overrides(kwargs)
+  __overrides = Dict{String, Any}(__overrides)
   __params = Symbolics.SymbolicT[]
   __vars = Symbolics.SymbolicT[]
   __systems = System[]
@@ -62,28 +62,28 @@ Car on a flat road: requested engine torque in, vehicle speed in km/h out.
   ### Components
   # Subcomponent engine of type mycar.Engine
   engine_overrides = __pop_subcomponent_overrides!(__overrides, "engine")
-  push!(__systems, @named engine = mycar.Engine(; engine_overrides...))
+  push!(__systems, @named engine = mycar.Engine(; __overrides = engine_overrides))
   # Subcomponent driveline of type mycar.WheeledDriveline
   driveline_overrides = __pop_subcomponent_overrides!(__overrides, "driveline")
-  push!(__systems, @named driveline = mycar.WheeledDriveline(; driveline_overrides...))
+  push!(__systems, @named driveline = mycar.WheeledDriveline(; __overrides = driveline_overrides))
   # Subcomponent body of type mycar.Body
   body_overrides = __pop_subcomponent_overrides!(__overrides, "body")
-  push!(__systems, @named body = mycar.Body(; body_overrides...))
+  push!(__systems, @named body = mycar.Body(; __overrides = body_overrides))
   # Subcomponent vsensor of type TranslationalComponents.Sensors.VelocitySensor
   vsensor_overrides = __pop_subcomponent_overrides!(__overrides, "vsensor")
-  push!(__systems, @named vsensor = TranslationalComponents.Sensors.VelocitySensor(; vsensor_overrides...))
+  push!(__systems, @named vsensor = TranslationalComponents.Sensors.VelocitySensor(; __overrides = vsensor_overrides))
   # Subcomponent to_kmh of type BlockComponents.Math.Gain
   to_kmh_overrides = __pop_subcomponent_overrides!(__overrides, "to_kmh")
-  push!(__systems, @named to_kmh = BlockComponents.Math.Gain(; k=3.6, to_kmh_overrides...))
+  push!(__systems, @named to_kmh = BlockComponents.Math.Gain(; k=3.6, __overrides = to_kmh_overrides))
   # Subcomponent rot_ground of type RotationalComponents.Components.Fixed
   rot_ground_overrides = __pop_subcomponent_overrides!(__overrides, "rot_ground")
-  push!(__systems, @named rot_ground = RotationalComponents.Components.Fixed(; rot_ground_overrides...))
+  push!(__systems, @named rot_ground = RotationalComponents.Components.Fixed(; __overrides = rot_ground_overrides))
   # Subcomponent trans_ground of type TranslationalComponents.Components.Fixed
   trans_ground_overrides = __pop_subcomponent_overrides!(__overrides, "trans_ground")
-  push!(__systems, @named trans_ground = TranslationalComponents.Components.Fixed(; trans_ground_overrides...))
+  push!(__systems, @named trans_ground = TranslationalComponents.Components.Fixed(; __overrides = trans_ground_overrides))
 
   ### Check there are no unmatched overrides
-  isempty(__overrides) || throw(ArgumentError("overrides: [$(join(keys(__overrides), ", "))] don't match names found in model. These names may exist in the model but could have been conditionally excluded."))
+  isempty(__overrides) || throw(ArgumentError("overrides: [$(join(keys(__overrides), ", "))] don't match names found in model. These names may exist in the model but could have been conditionally excluded. Override keys are dotted paths as written in Dyad source (e.g. inner.rate)."))
 
   ### Guesses
 
@@ -102,6 +102,6 @@ Car on a flat road: requested engine torque in, vehicle speed in km/h out.
   push!(__eqs, connect(rot_ground.spline, engine.support, driveline.support_r))
 
   # Return completely constructed System
-  return System(__eqs, t, __vars, __params; systems=__systems, initial_conditions=__initial_conditions, guesses=__guesses, name, initialization_eqs=__initialization_eqs, bindings=__bindings, assertions=__assertions)
+  return System(__eqs, ModelingToolkit.t_nounits, __vars, __params; systems=__systems, initial_conditions=__initial_conditions, guesses=__guesses, name, initialization_eqs=__initialization_eqs, bindings=__bindings, assertions=__assertions)
 end
 export WheeledCar

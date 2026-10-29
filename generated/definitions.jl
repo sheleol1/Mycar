@@ -8,6 +8,8 @@ using ModelingToolkit
 import Markdown
 using ModelingToolkit: t_nounits as t
 using OrdinaryDiffEqDefault
+using DyadInterface: ODEAlg, DEVerbosity, OptimizationLevel, SpecializationLevel
+using ModelingToolkit: SymbolicT, toggle_namespacing
 using RuntimeGeneratedFunctions
 RuntimeGeneratedFunctions.init(@__MODULE__)
 
@@ -16,11 +18,43 @@ if isfile(joinpath((@__DIR__) |> Base.dirname, "dyad", "definitions.jl"))
 end
 
 import BlockComponents
+let api = isdefined(BlockComponents, :__dyad_constructor_api) ? BlockComponents.__dyad_constructor_api : 1
+  api == 2 || error("BlockComponents was generated with Dyad constructor API version $api, but mycar requires version 2 (the `__overrides` dict override channel). Regenerate BlockComponents with the same Dyad compiler that generated mycar.")
+end
+import DiscreteComponents
+let api = isdefined(DiscreteComponents, :__dyad_constructor_api) ? DiscreteComponents.__dyad_constructor_api : 1
+  api == 2 || error("DiscreteComponents was generated with Dyad constructor API version $api, but mycar requires version 2 (the `__overrides` dict override channel). Regenerate DiscreteComponents with the same Dyad compiler that generated mycar.")
+end
 import DyadData
 import DyadInterface
+import ElectricalComponents
+let api = isdefined(ElectricalComponents, :__dyad_constructor_api) ? ElectricalComponents.__dyad_constructor_api : 1
+  api == 2 || error("ElectricalComponents was generated with Dyad constructor API version $api, but mycar requires version 2 (the `__overrides` dict override channel). Regenerate ElectricalComponents with the same Dyad compiler that generated mycar.")
+end
+import HydraulicComponents
+let api = isdefined(HydraulicComponents, :__dyad_constructor_api) ? HydraulicComponents.__dyad_constructor_api : 1
+  api == 2 || error("HydraulicComponents was generated with Dyad constructor API version $api, but mycar requires version 2 (the `__overrides` dict override channel). Regenerate HydraulicComponents with the same Dyad compiler that generated mycar.")
+end
+import MultibodyComponents
+let api = isdefined(MultibodyComponents, :__dyad_constructor_api) ? MultibodyComponents.__dyad_constructor_api : 1
+  api == 2 || error("MultibodyComponents was generated with Dyad constructor API version $api, but mycar requires version 2 (the `__overrides` dict override channel). Regenerate MultibodyComponents with the same Dyad compiler that generated mycar.")
+end
 import RotationalComponents
+let api = isdefined(RotationalComponents, :__dyad_constructor_api) ? RotationalComponents.__dyad_constructor_api : 1
+  api == 2 || error("RotationalComponents was generated with Dyad constructor API version $api, but mycar requires version 2 (the `__overrides` dict override channel). Regenerate RotationalComponents with the same Dyad compiler that generated mycar.")
+end
 import ThermalComponents
+let api = isdefined(ThermalComponents, :__dyad_constructor_api) ? ThermalComponents.__dyad_constructor_api : 1
+  api == 2 || error("ThermalComponents was generated with Dyad constructor API version $api, but mycar requires version 2 (the `__overrides` dict override channel). Regenerate ThermalComponents with the same Dyad compiler that generated mycar.")
+end
 import TranslationalComponents
+let api = isdefined(TranslationalComponents, :__dyad_constructor_api) ? TranslationalComponents.__dyad_constructor_api : 1
+  api == 2 || error("TranslationalComponents was generated with Dyad constructor API version $api, but mycar requires version 2 (the `__overrides` dict override channel). Regenerate TranslationalComponents with the same Dyad compiler that generated mycar.")
+end
+import VehicleSystemsComponents
+let api = isdefined(VehicleSystemsComponents, :__dyad_constructor_api) ? VehicleSystemsComponents.__dyad_constructor_api : 1
+  api == 2 || error("VehicleSystemsComponents was generated with Dyad constructor API version $api, but mycar requires version 2 (the `__overrides` dict override channel). Regenerate VehicleSystemsComponents with the same Dyad compiler that generated mycar.")
+end
 @doc Markdown.doc"""
 This connector represents an electrical pin with voltage and current as the potential and flow variables, respectively.
 """
@@ -199,10 +233,13 @@ component.
 end
 
 
+include("AirPathStepTransient_definition.jl")
+include("AirPathStep_definition.jl")
 include("Body_definition.jl")
 include("CarFullThrottleTransient_definition.jl")
 include("CarFullThrottle_definition.jl")
 include("Car_definition.jl")
+include("CruiseController_definition.jl")
 include("Driveline_definition.jl")
 include("EngineStepAnalysis_definition.jl")
 include("EngineStepTransient_definition.jl")
@@ -211,6 +248,19 @@ include("Engine_definition.jl")
 include("GradeBody_definition.jl")
 include("GradeForce_definition.jl")
 include("Hello_definition.jl")
+include("Manifold_definition.jl")
+include("MapEngineDynoTransient_definition.jl")
+include("MapEngineDyno_definition.jl")
+include("MapEngine_definition.jl")
+include("MappedCarCoastTransient_definition.jl")
+include("MappedCarCoast_definition.jl")
+include("MappedCarCruiseTransient_definition.jl")
+include("MappedCarCruise_definition.jl")
+include("MappedCarWLTCTransient_definition.jl")
+include("MappedCarWLTC_definition.jl")
+include("MappedCarWOTTransient_definition.jl")
+include("MappedCarWOT_definition.jl")
+include("MappedCar_definition.jl")
 include("MyTest_definition.jl")
 include("SlipCarStandingStartTransient_definition.jl")
 include("SlipCarStandingStart_definition.jl")

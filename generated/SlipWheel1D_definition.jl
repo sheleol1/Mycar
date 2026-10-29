@@ -5,7 +5,7 @@
 
 
 @doc Markdown.doc"""
-   SlipWheel1D(; name, radius, F_z, v_eps)
+   SlipWheel1D(; name, radius, F_z, v_eps, __overrides)
 
 Wheel with longitudinal tyre slip: shaft rotation produces traction.
 
@@ -33,7 +33,7 @@ Wheel with longitudinal tyre slip: shaft rotation produces traction.
 | `mu`         | Signed friction coefficient after road scaling.                         | --  |
 | `F_x`         | Longitudinal tyre force.                         | N  |
 """
-@component function SlipWheel1D(; name = nothing, radius=0.31, F_z=6864.655, v_eps=0.5, kwargs...)
+@component function SlipWheel1D(; name = nothing, var"radius"=0.31, var"F_z"=6864.655, var"v_eps"=0.5, __overrides = Dict{String, Any}())
   isnothing(name) && throw(ArgumentError("""
     The `name` keyword must be provided. Please consider using the `@named` macro,
     like so:
@@ -41,7 +41,7 @@ Wheel with longitudinal tyre slip: shaft rotation produces traction.
     @named model = SlipWheel1D()
   """))
 
-  __overrides = __build_overrides(kwargs)
+  __overrides = Dict{String, Any}(__overrides)
   __params = Symbolics.SymbolicT[]
   __vars = Symbolics.SymbolicT[]
   __systems = System[]
@@ -50,6 +50,11 @@ Wheel with longitudinal tyre slip: shaft rotation produces traction.
   __initialization_eqs = Equation[]
   __eqs = Equation[]
   __bindings = Dict{Symbolics.SymbolicT, Symbolics.SymbolicT}()
+
+  ### Keyword argument overrides
+  haskey(__overrides, "radius") && (radius = pop!(__overrides, "radius"))
+  haskey(__overrides, "F_z") && (F_z = pop!(__overrides, "F_z"))
+  haskey(__overrides, "v_eps") && (v_eps = pop!(__overrides, "v_eps"))
 
   ### Structural Parameters (functions)
 
@@ -66,13 +71,13 @@ Wheel with longitudinal tyre slip: shaft rotation produces traction.
   ### Symbolic Parameters
   __local__radius = radius
   append!(__params, @parameters (radius::Real), [description = "Wheel rolling radius in metres."])
-  __initial_conditions[radius] = __local__radius
+  __dyad_seed_parameter!(__initial_conditions, __bindings, radius, __local__radius)
   __local__F_z = F_z
   append!(__params, @parameters (F_z::Real), [description = "Normal load on the driven axle in newtons."])
-  __initial_conditions[F_z] = __local__F_z
+  __dyad_seed_parameter!(__initial_conditions, __bindings, F_z, __local__F_z)
   __local__v_eps = v_eps
   append!(__params, @parameters (v_eps::Real), [description = "Speed floor preventing division by zero at standstill."])
-  __initial_conditions[v_eps] = __local__v_eps
+  __dyad_seed_parameter!(__initial_conditions, __bindings, v_eps, __local__v_eps)
 
   ### Final Parameters (assignments)
 
@@ -88,20 +93,20 @@ Wheel with longitudinal tyre slip: shaft rotation produces traction.
 
   ### Variables (assignments)
   __ovr_omega = pop!(__overrides, "omega", nothing); isnothing(__ovr_omega) || push!(__eqs, omega ~ __ovr_omega)
-  __ovr_omega__initial = pop!(__overrides, "omega__initial", nothing); isnothing(__ovr_omega__initial) || (__initial_conditions[omega] = __ovr_omega__initial)
-  __ovr_omega__guess = pop!(__overrides, "omega__guess", nothing)
+  __ovr_omega__initial = pop!(__overrides, "omega.initial", nothing); isnothing(__ovr_omega__initial) || (__initial_conditions[omega] = __ovr_omega__initial)
+  __ovr_omega__guess = pop!(__overrides, "omega.guess", nothing)
   __ovr_v = pop!(__overrides, "v", nothing); isnothing(__ovr_v) || push!(__eqs, v ~ __ovr_v)
-  __ovr_v__initial = pop!(__overrides, "v__initial", nothing); isnothing(__ovr_v__initial) || (__initial_conditions[v] = __ovr_v__initial)
-  __ovr_v__guess = pop!(__overrides, "v__guess", nothing)
+  __ovr_v__initial = pop!(__overrides, "v.initial", nothing); isnothing(__ovr_v__initial) || (__initial_conditions[v] = __ovr_v__initial)
+  __ovr_v__guess = pop!(__overrides, "v.guess", nothing)
   __ovr_kappa = pop!(__overrides, "kappa", nothing); isnothing(__ovr_kappa) || push!(__eqs, kappa ~ __ovr_kappa)
-  __ovr_kappa__initial = pop!(__overrides, "kappa__initial", nothing); isnothing(__ovr_kappa__initial) || (__initial_conditions[kappa] = __ovr_kappa__initial)
-  __ovr_kappa__guess = pop!(__overrides, "kappa__guess", nothing)
+  __ovr_kappa__initial = pop!(__overrides, "kappa.initial", nothing); isnothing(__ovr_kappa__initial) || (__initial_conditions[kappa] = __ovr_kappa__initial)
+  __ovr_kappa__guess = pop!(__overrides, "kappa.guess", nothing)
   __ovr_mu = pop!(__overrides, "mu", nothing); isnothing(__ovr_mu) || push!(__eqs, mu ~ __ovr_mu)
-  __ovr_mu__initial = pop!(__overrides, "mu__initial", nothing); isnothing(__ovr_mu__initial) || (__initial_conditions[mu] = __ovr_mu__initial)
-  __ovr_mu__guess = pop!(__overrides, "mu__guess", nothing)
+  __ovr_mu__initial = pop!(__overrides, "mu.initial", nothing); isnothing(__ovr_mu__initial) || (__initial_conditions[mu] = __ovr_mu__initial)
+  __ovr_mu__guess = pop!(__overrides, "mu.guess", nothing)
   __ovr_F_x = pop!(__overrides, "F_x", nothing); isnothing(__ovr_F_x) || push!(__eqs, F_x ~ __ovr_F_x)
-  __ovr_F_x__initial = pop!(__overrides, "F_x__initial", nothing); isnothing(__ovr_F_x__initial) || (__initial_conditions[F_x] = __ovr_F_x__initial)
-  __ovr_F_x__guess = pop!(__overrides, "F_x__guess", nothing)
+  __ovr_F_x__initial = pop!(__overrides, "F_x.initial", nothing); isnothing(__ovr_F_x__initial) || (__initial_conditions[F_x] = __ovr_F_x__initial)
+  __ovr_F_x__guess = pop!(__overrides, "F_x.guess", nothing)
 
   ### Constants
   __constants = Any[]
@@ -111,10 +116,10 @@ Wheel with longitudinal tyre slip: shaft rotation produces traction.
   push!(__systems, @named flange = __Dyad__Flange())
   # Subcomponent curve of type mycar.TireFrictionCurve
   curve_overrides = __pop_subcomponent_overrides!(__overrides, "curve")
-  push!(__systems, @named curve = mycar.TireFrictionCurve(; curve_overrides...))
+  push!(__systems, @named curve = mycar.TireFrictionCurve(; __overrides = curve_overrides))
 
   ### Check there are no unmatched overrides
-  isempty(__overrides) || throw(ArgumentError("overrides: [$(join(keys(__overrides), ", "))] don't match names found in model. These names may exist in the model but could have been conditionally excluded."))
+  isempty(__overrides) || throw(ArgumentError("overrides: [$(join(keys(__overrides), ", "))] don't match names found in model. These names may exist in the model but could have been conditionally excluded. Override keys are dotted paths as written in Dyad source (e.g. inner.rate)."))
 
   ### Guesses
   isnothing(__ovr_omega__guess) || (__guesses[omega] = __ovr_omega__guess)
@@ -139,6 +144,6 @@ Wheel with longitudinal tyre slip: shaft rotation produces traction.
   push!(__eqs, 0 ~ spline.tau + radius * flange.f)
 
   # Return completely constructed System
-  return System(__eqs, t, __vars, __params; systems=__systems, initial_conditions=__initial_conditions, guesses=__guesses, name, initialization_eqs=__initialization_eqs, bindings=__bindings, assertions=__assertions)
+  return System(__eqs, ModelingToolkit.t_nounits, __vars, __params; systems=__systems, initial_conditions=__initial_conditions, guesses=__guesses, name, initialization_eqs=__initialization_eqs, bindings=__bindings, assertions=__assertions)
 end
 export SlipWheel1D
