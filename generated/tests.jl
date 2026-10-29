@@ -18,6 +18,7 @@ end
 include("test_internals.jl")
 
 @testset "`mycar`" begin
+include("ABSStop_test.jl")
 include("AirPathStep_test.jl")
 include("Body_test.jl")
 include("CarFullThrottle_test.jl")
@@ -39,6 +40,7 @@ include("MappedCarWOT_test.jl")
 include("MappedCar_test.jl")
 include("MyTest_test.jl")
 include("PedalStop_test.jl")
+include("SlipABS_test.jl")
 include("SlipCarStandingStart_test.jl")
 include("SlipCar_test.jl")
 include("SlipWheel1D_test.jl")
