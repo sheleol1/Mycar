@@ -234,6 +234,8 @@ end
 
 
 include("ABSStopTransient_definition.jl")
+include("ABSStopWheelOnlyTransient_definition.jl")
+include("ABSStopWheelOnly_definition.jl")
 include("ABSStop_definition.jl")
 include("AirPathStepTransient_definition.jl")
 include("AirPathStep_definition.jl")
@@ -266,6 +268,8 @@ include("MappedCar_definition.jl")
 include("MyTest_definition.jl")
 include("PedalStopTransient_definition.jl")
 include("PedalStop_definition.jl")
+include("PhaseABS_definition.jl")
+include("RefSpeedEstimator_definition.jl")
 include("SlipABS_definition.jl")
 include("SlipCarStandingStartTransient_definition.jl")
 include("SlipCarStandingStart_definition.jl")
