@@ -1,0 +1,40 @@
+component EngineTCS
+  "Driving slip: positive during wheelspin"
+  kappa = RealInput()
+  "Maximum permitted throttle: 0 to 1"
+  throttle_limit = RealOutput()
+
+  "Target driving slip"
+  parameter lambda_target::Real = 0.04
+  "Prediction time for the slower engine response [s]"
+  parameter T_p::Time = 0.3
+  "Slip filtering time [s]"
+  parameter T_f::Time = 0.003
+  "Throttle reduction rate [1/s]"
+  parameter k_reduce::Real = 18
+  "Throttle recovery rate [1/s]"
+  parameter k_recover::Real = 10
+
+  variable kappa_f::Real
+  variable kappa_dot::Real
+  variable kappa_pred::Real
+  variable limit::Real
+  variable rate::Real
+relations
+  initial kappa_f = 0
+  der(kappa_f) = (kappa - kappa_f) / T_f
+  kappa_dot = (kappa - kappa_f) / T_f
+  kappa_pred = kappa + T_p * kappa_dot
+
+  rate = ifelse(
+    kappa_pred > lambda_target,
+    -k_reduce,
+    k_recover)
+
+  initial limit = 1
+  der(limit) = ifelse(
+    limit >= 1 and rate > 0, 0,
+    ifelse(limit <= 0 and rate < 0, 0, rate))
+
+  throttle_limit = min(max(limit, 0), 1)
+end
