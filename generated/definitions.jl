@@ -233,6 +233,8 @@ component.
 end
 
 
+include("AirPathStepTransient_definition.jl")
+include("AirPathStep_definition.jl")
 include("Body_definition.jl")
 include("CarFullThrottleTransient_definition.jl")
 include("CarFullThrottle_definition.jl")
@@ -245,6 +247,8 @@ include("Engine_definition.jl")
 include("GradeBody_definition.jl")
 include("GradeForce_definition.jl")
 include("Hello_definition.jl")
+include("Manifold_definition.jl")
+include("MapEngine_definition.jl")
 include("MyTest_definition.jl")
 include("SlipCarStandingStartTransient_definition.jl")
 include("SlipCarStandingStart_definition.jl")
