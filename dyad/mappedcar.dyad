@@ -15,6 +15,11 @@ component MappedCar
   to_lph = BlockComponents.Math.Gain(k = 4832.2) {^to_lph}
   rot_ground = RotationalComponents.Components.Fixed() {^rot_ground}
   trans_ground = TranslationalComponents.Components.Fixed() {^trans_ground}
+    "Requested braking force [N]"
+  F_brake = RealInput()
+
+  "Wheel brake acting between the car and the road"
+  brake = VehicleSystemsComponents.Vehicle.RoadBrake()
 relations
   connect(pedal, engine.pedal) {^id14}
   connect(pedal, driveline.pedal) {^id15}
@@ -30,6 +35,9 @@ relations
   connect(engine.p_m, p_m) {^id25}
   connect(engine.mdot_fuel, to_lph.u) {^id26}
   connect(to_lph.y, fuel_lph) {^id27}
+  connect(F_brake, brake.F_cmd)
+  connect(brake.flange, body.flange)
+  connect(brake.support, trans_ground.flange)
 metadata {
   "_links": {
     "pedal": {

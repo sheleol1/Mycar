@@ -84,6 +84,9 @@
   # Subcomponent car of type mycar.MappedCar
   car_overrides = __pop_subcomponent_overrides!(__overrides, "car")
   push!(__systems, @named car = mycar.MappedCar(; ratio_initial=rpm0 * pi / 30 * 0.31 / (speed_kmh / 3.6), __overrides = car_overrides))
+  # Subcomponent brake_cmd of type BlockComponents.Sources.Constant
+  brake_cmd_overrides = __pop_subcomponent_overrides!(__overrides, "brake_cmd")
+  push!(__systems, @named brake_cmd = BlockComponents.Sources.Constant(; k=Float64(0), __overrides = brake_cmd_overrides))
 
   ### Check there are no unmatched overrides
   isempty(__overrides) || throw(ArgumentError("overrides: [$(join(keys(__overrides), ", "))] don't match names found in model. These names may exist in the model but could have been conditionally excluded. Override keys are dotted paths as written in Dyad source (e.g. inner.rate)."))
@@ -103,6 +106,7 @@
 
   ### Equations
   push!(__eqs, connect(pedal.y, car.pedal))
+  push!(__eqs, connect(brake_cmd.y, car.F_brake))
 
   # Return completely constructed System
   return System(__eqs, ModelingToolkit.t_nounits, __vars, __params; systems=__systems, initial_conditions=__initial_conditions, guesses=__guesses, name, initialization_eqs=__initialization_eqs, bindings=__bindings, assertions=__assertions)

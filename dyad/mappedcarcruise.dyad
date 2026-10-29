@@ -17,6 +17,9 @@ component MappedCarCruise
     ratio_initial = rpm0 * pi / 30 * 0.31 / (speed_kmh / 3.6)
   )
 
+  "No wheel braking in this test"
+  brake_cmd = BlockComponents.Sources.Constant(k = 0)
+
 relations
   connect(pedal.y, car.pedal)
 
@@ -28,6 +31,7 @@ relations
 
   initial car.driveline.clutch.spline_b.phi = 0
   initial car.engine.air.manifold.p = p_m0
+  connect(brake_cmd.y, car.F_brake)
 end
 
 analysis MappedCarCruiseTransient
