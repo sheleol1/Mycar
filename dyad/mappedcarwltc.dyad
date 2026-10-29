@@ -1,0 +1,85 @@
+component MappedCarWLTC
+  "WLTC target road speed [km/h]"
+  trace = VehicleSystemsComponents.Vehicle.DriveCycle()
+
+  "Automatic driver: effort between -1 and +1"
+  driver = CruiseController(
+    k = 0.14,
+    Ti = 3.5,
+    Td = 0.7,
+    Nd = 10,
+    wd = 0,
+    xi0 = 0,
+    xd0 = 0,
+    y_min = -1,
+    y_max = 1
+  )
+
+  "Your mapped-engine car with wheel brakes"
+  car = MappedCar()
+
+  "Positive driver effort becomes accelerator command"
+  accelerator = BlockComponents.Nonlinear.Limiter(
+    y_min = 0,
+    y_max = 1
+  )
+
+  "Keep only the negative part of driver effort"
+  braking = BlockComponents.Nonlinear.Limiter(
+    y_min = -1,
+    y_max = 0
+  )
+
+  "Convert negative effort to positive brake force [N]"
+  brake_force = BlockComponents.Math.Gain(k = -4000)
+
+  "Accumulate fuel: L/h multiplied by seconds / 3600"
+  fuel_L = BlockComponents.Continuous.Integrator(
+    k = 1 / 3600,
+    x0 = 0
+  )
+
+  "Accumulate distance: km/h multiplied by seconds / 3600"
+  dist_km = BlockComponents.Continuous.Integrator(
+    k = 1 / 3600,
+    x0 = 0
+  )
+
+relations
+  connect(trace.y, driver.u_s)
+  connect(car.v_kmh, driver.u_m)
+
+  connect(driver.y, accelerator.u)
+  connect(accelerator.y, car.pedal)
+
+  connect(driver.y, braking.u)
+  connect(braking.y, brake_force.u)
+  connect(brake_force.y, car.F_brake)
+
+  connect(car.fuel_lph, fuel_L.u)
+  connect(car.v_kmh, dist_km.u)
+
+  "Start the car at rest"
+  initial car.body.mass.s = 0
+  initial car.body.mass.v = 0
+
+  "Start the engine at its measured idle speed"
+  initial car.flywheel.w = 775 * pi / 30
+
+  "Initial shaft angles"
+  initial car.flywheel.phi = 0
+  initial car.driveline.clutch.spline_b.phi = 0
+
+  "Initial manifold pressure at idle [Pa]"
+  initial car.engine.air.manifold.p = 33600
+end
+
+analysis MappedCarWLTCTransient
+  extends TransientAnalysis(
+    stop = 1800,
+    saveat = 1,
+    alg = ODEAlg.Rodas5P()
+  )
+
+  model = MappedCarWLTC()
+end
