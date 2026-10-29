@@ -5,7 +5,7 @@
 
 
 @doc Markdown.doc"""
-   Body(; name, m, CdA, rho, f_r, g, v_nominal)
+   Body(; name, m, CdA, rho, f_r, g, v_nominal, __overrides)
 
 short Body component description
 
@@ -24,7 +24,7 @@ short Body component description
 
  * `flange` - This connector represents a mechanical flange with position and force as the potential and flow variables, respectively. ([`Flange`](@ref))
 """
-@component function Body(; name = nothing, m=Float64(1400), CdA=0.63, rho=1.2, f_r=0.012, g=9.80665, v_nominal=Float64(30), kwargs...)
+@component function Body(; name = nothing, var"m"=Float64(1400), var"CdA"=0.63, var"rho"=1.2, var"f_r"=0.012, var"g"=9.80665, var"v_nominal"=Float64(30), __overrides = Dict{String, Any}())
   isnothing(name) && throw(ArgumentError("""
     The `name` keyword must be provided. Please consider using the `@named` macro,
     like so:
@@ -32,7 +32,7 @@ short Body component description
     @named model = Body()
   """))
 
-  __overrides = __build_overrides(kwargs)
+  __overrides = Dict{String, Any}(__overrides)
   __params = Symbolics.SymbolicT[]
   __vars = Symbolics.SymbolicT[]
   __systems = System[]
@@ -41,6 +41,14 @@ short Body component description
   __initialization_eqs = Equation[]
   __eqs = Equation[]
   __bindings = Dict{Symbolics.SymbolicT, Symbolics.SymbolicT}()
+
+  ### Keyword argument overrides
+  haskey(__overrides, "m") && (m = pop!(__overrides, "m"))
+  haskey(__overrides, "CdA") && (CdA = pop!(__overrides, "CdA"))
+  haskey(__overrides, "rho") && (rho = pop!(__overrides, "rho"))
+  haskey(__overrides, "f_r") && (f_r = pop!(__overrides, "f_r"))
+  haskey(__overrides, "g") && (g = pop!(__overrides, "g"))
+  haskey(__overrides, "v_nominal") && (v_nominal = pop!(__overrides, "v_nominal"))
 
   ### Structural Parameters (functions)
 
@@ -57,22 +65,22 @@ short Body component description
   ### Symbolic Parameters
   __local__m = m
   append!(__params, @parameters (m::Real), [description = "Vehicle mass", bounds = (0, Inf)])
-  __initial_conditions[m] = __local__m
+  __dyad_seed_parameter!(__initial_conditions, __bindings, m, __local__m)
   __local__CdA = CdA
   append!(__params, @parameters (CdA::Real), [description = "Aerodynamic drag area, Cd * A"])
-  __initial_conditions[CdA] = __local__CdA
+  __dyad_seed_parameter!(__initial_conditions, __bindings, CdA, __local__CdA)
   __local__rho = rho
   append!(__params, @parameters (rho::Real), [description = "Air density", bounds = (0, Inf)])
-  __initial_conditions[rho] = __local__rho
+  __dyad_seed_parameter!(__initial_conditions, __bindings, rho, __local__rho)
   __local__f_r = f_r
   append!(__params, @parameters (f_r::Real), [description = "Rolling resistance coefficient"])
-  __initial_conditions[f_r] = __local__f_r
+  __dyad_seed_parameter!(__initial_conditions, __bindings, f_r, __local__f_r)
   __local__g = g
   append!(__params, @parameters (g::Real), [description = "Gravitational acceleration"])
-  __initial_conditions[g] = __local__g
+  __dyad_seed_parameter!(__initial_conditions, __bindings, g, __local__g)
   __local__v_nominal = v_nominal
   append!(__params, @parameters (v_nominal::Real), [description = "Speed at which the drag force is specified"])
-  __initial_conditions[v_nominal] = __local__v_nominal
+  __dyad_seed_parameter!(__initial_conditions, __bindings, v_nominal, __local__v_nominal)
 
   ### Final Parameters (assignments)
 
@@ -89,25 +97,25 @@ short Body component description
   push!(__systems, @named flange = __Dyad__Flange())
   # Subcomponent mass of type TranslationalComponents.Components.Mass
   mass_overrides = __pop_subcomponent_overrides!(__overrides, "mass")
-  push!(__systems, @named mass = TranslationalComponents.Components.Mass(; m=m, mass_overrides...))
+  push!(__systems, @named mass = TranslationalComponents.Components.Mass(; m=m, __overrides = mass_overrides))
   # Subcomponent incl_constant of type BlockComponents.Sources.Constant
   incl_constant_overrides = __pop_subcomponent_overrides!(__overrides, "incl_constant")
-  push!(__systems, @named incl_constant = BlockComponents.Sources.Constant(; k=Float64(0), incl_constant_overrides...))
+  push!(__systems, @named incl_constant = BlockComponents.Sources.Constant(; k=Float64(0), __overrides = incl_constant_overrides))
   # Subcomponent cr_constant of type BlockComponents.Sources.Constant
   cr_constant_overrides = __pop_subcomponent_overrides!(__overrides, "cr_constant")
-  push!(__systems, @named cr_constant = BlockComponents.Sources.Constant(; k=f_r, cr_constant_overrides...))
+  push!(__systems, @named cr_constant = BlockComponents.Sources.Constant(; k=f_r, __overrides = cr_constant_overrides))
   # Subcomponent rolling of type TranslationalComponents.Components.RollingResistance
   rolling_overrides = __pop_subcomponent_overrides!(__overrides, "rolling")
-  push!(__systems, @named rolling = TranslationalComponents.Components.RollingResistance(; fWeight=m * g, rolling_overrides...))
+  push!(__systems, @named rolling = TranslationalComponents.Components.RollingResistance(; fWeight=m * g, __overrides = rolling_overrides))
   # Subcomponent drag of type TranslationalComponents.Sources.QuadraticSpeedDependentForce
   drag_overrides = __pop_subcomponent_overrides!(__overrides, "drag")
-  push!(__systems, @named drag = TranslationalComponents.Sources.QuadraticSpeedDependentForce(; ForceDirection=false, f_nominal=-0.5 * rho * CdA * v_nominal ^ 2, v_nominal=v_nominal, drag_overrides...))
+  push!(__systems, @named drag = TranslationalComponents.Sources.QuadraticSpeedDependentForce(; ForceDirection=false, f_nominal=-0.5 * rho * CdA * v_nominal ^ 2, v_nominal=v_nominal, __overrides = drag_overrides))
   # Subcomponent ground of type TranslationalComponents.Components.Fixed
   ground_overrides = __pop_subcomponent_overrides!(__overrides, "ground")
-  push!(__systems, @named ground = TranslationalComponents.Components.Fixed(; ground_overrides...))
+  push!(__systems, @named ground = TranslationalComponents.Components.Fixed(; __overrides = ground_overrides))
 
   ### Check there are no unmatched overrides
-  isempty(__overrides) || throw(ArgumentError("overrides: [$(join(keys(__overrides), ", "))] don't match names found in model. These names may exist in the model but could have been conditionally excluded."))
+  isempty(__overrides) || throw(ArgumentError("overrides: [$(join(keys(__overrides), ", "))] don't match names found in model. These names may exist in the model but could have been conditionally excluded. Override keys are dotted paths as written in Dyad source (e.g. inner.rate)."))
 
   ### Guesses
 
@@ -124,6 +132,6 @@ short Body component description
   push!(__eqs, connect(drag.support, ground.flange, rolling.support))
 
   # Return completely constructed System
-  return System(__eqs, t, __vars, __params; systems=__systems, initial_conditions=__initial_conditions, guesses=__guesses, name, initialization_eqs=__initialization_eqs, bindings=__bindings, assertions=__assertions)
+  return System(__eqs, ModelingToolkit.t_nounits, __vars, __params; systems=__systems, initial_conditions=__initial_conditions, guesses=__guesses, name, initialization_eqs=__initialization_eqs, bindings=__bindings, assertions=__assertions)
 end
 export Body

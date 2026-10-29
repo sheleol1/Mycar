@@ -5,7 +5,7 @@
 
 
 @doc Markdown.doc"""
-   MyTest(; name, D1)
+   MyTest(; name, D1, __overrides)
 
 short MyTest component description
 
@@ -19,7 +19,7 @@ short MyTest component description
 
  * `realinput` - This connector represents a real signal as an input to a component ([`RealInput`](@ref))
 """
-@component function MyTest(; name = nothing, D1=Float64(10), kwargs...)
+@component function MyTest(; name = nothing, var"D1"=Float64(10), __overrides = Dict{String, Any}())
   isnothing(name) && throw(ArgumentError("""
     The `name` keyword must be provided. Please consider using the `@named` macro,
     like so:
@@ -27,7 +27,7 @@ short MyTest component description
     @named model = MyTest()
   """))
 
-  __overrides = __build_overrides(kwargs)
+  __overrides = Dict{String, Any}(__overrides)
   __params = Symbolics.SymbolicT[]
   __vars = Symbolics.SymbolicT[]
   __systems = System[]
@@ -36,6 +36,9 @@ short MyTest component description
   __initialization_eqs = Equation[]
   __eqs = Equation[]
   __bindings = Dict{Symbolics.SymbolicT, Symbolics.SymbolicT}()
+
+  ### Keyword argument overrides
+  haskey(__overrides, "D1") && (D1 = pop!(__overrides, "D1"))
 
   ### Structural Parameters (functions)
 
@@ -52,7 +55,7 @@ short MyTest component description
   ### Symbolic Parameters
   __local__D1 = D1
   append!(__params, @parameters (D1::Real))
-  __initial_conditions[D1] = __local__D1
+  __dyad_seed_parameter!(__initial_conditions, __bindings, D1, __local__D1)
 
   ### Final Parameters (assignments)
 
@@ -69,7 +72,7 @@ short MyTest component description
   ### Components
 
   ### Check there are no unmatched overrides
-  isempty(__overrides) || throw(ArgumentError("overrides: [$(join(keys(__overrides), ", "))] don't match names found in model. These names may exist in the model but could have been conditionally excluded."))
+  isempty(__overrides) || throw(ArgumentError("overrides: [$(join(keys(__overrides), ", "))] don't match names found in model. These names may exist in the model but could have been conditionally excluded. Override keys are dotted paths as written in Dyad source (e.g. inner.rate)."))
 
   ### Guesses
 
@@ -81,6 +84,6 @@ short MyTest component description
   ### Equations
 
   # Return completely constructed System
-  return System(__eqs, t, __vars, __params; systems=__systems, initial_conditions=__initial_conditions, guesses=__guesses, name, initialization_eqs=__initialization_eqs, bindings=__bindings, assertions=__assertions)
+  return System(__eqs, ModelingToolkit.t_nounits, __vars, __params; systems=__systems, initial_conditions=__initial_conditions, guesses=__guesses, name, initialization_eqs=__initialization_eqs, bindings=__bindings, assertions=__assertions)
 end
 export MyTest
