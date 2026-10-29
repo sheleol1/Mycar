@@ -1,0 +1,73 @@
+component TCSCar
+  "Driver throttle request: 0 to 1"
+  pedal = RealInput()
+  "Throttle limit from engine TCS"
+  u_tcs = RealInput()
+  "Brake pressure requested by brake TCS [Pa]"
+  p_cmd = RealInput()
+  "Road grip multiplier"
+  mu_scale = RealInput()
+
+  "Actual driving slip"
+  kappa = RealOutput()
+  "Car speed [m/s]"
+  v = RealOutput()
+
+  "Pressure supplied by the TCS pump [Pa]"
+  parameter supply_pressure::Pressure = 8.9e6
+
+  throttle_limit = BlockComponents.Math.Min()
+  engine = MapEngine()
+  flywheel = RotationalComponents.Components.Inertia(J = 0.15)
+  clutch = VehicleSystemsComponents.Vehicle.CentrifugalClutch()
+  variator = VehicleSystemsComponents.Vehicle.ControlledVariator()
+
+  supply_command = BlockComponents.Sources.Constant(k = supply_pressure)
+  supply = HydraulicComponents.Sources.BoundaryPressure()
+  valve_f = VehicleSystemsComponents.Vehicle.Brake.ABSValve()
+  valve_r = VehicleSystemsComponents.Vehicle.Brake.ABSValve()
+  line_f = VehicleSystemsComponents.Vehicle.Brake.BrakeLine()
+  line_r = VehicleSystemsComponents.Vehicle.Brake.BrakeLine(L = 4.0)
+
+  "Driven axle carries half the vehicle weight"
+  wheel = VehicleSystemsComponents.Vehicle.Wheel.HydraulicBrakedWheel(
+    F_z = 1400 * 9.80665 / 2)
+
+  body = Body()
+  housing = RotationalComponents.Components.Fixed()
+  speed = TranslationalComponents.Sensors.VelocitySensor()
+
+  path medium::HydraulicComponents.Interfaces.AbstractMedium =
+    HydraulicComponents.IsothermalCompressible(
+      bulk_modulus = 1.4e9,
+      density = 1045.0,
+      let_gas = false)
+relations
+  connect(pedal, throttle_limit.u1, variator.pedal)
+  connect(u_tcs, throttle_limit.u2)
+  connect(throttle_limit.y, engine.pedal)
+
+  connect(engine.spline, flywheel.spline_a)
+  connect(flywheel.spline_b, clutch.spline_a)
+  connect(clutch.spline_b, variator.spline_a)
+  connect(variator.spline_b, wheel.spline)
+
+  connect(engine.support, clutch.support, variator.support,
+    wheel.support, housing.spline)
+
+  connect(supply_command.y, supply.p)
+  connect(supply.port, valve_f.port_a, valve_r.port_a)
+
+  connect(valve_f.port_b, line_f.port_a)
+  connect(line_f.port_b, wheel.front)
+  connect(valve_r.port_b, line_r.port_a)
+  connect(line_r.port_b, wheel.rear)
+
+  continuity(medium, supply.port.medium)
+  connect(p_cmd, valve_f.p_cmd, valve_r.p_cmd)
+
+  connect(mu_scale, wheel.mu_scale)
+  connect(wheel.flange, body.flange, speed.flange)
+  connect(wheel.kappa, kappa)
+  connect(speed.v, v)
+end
