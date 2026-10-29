@@ -7,7 +7,20 @@
 @doc Markdown.doc"""
    MapEngine(; name, __overrides)
 
-short MapEngine component description
+## Connectors
+
+ * `pedal` - This connector represents a real signal as an input to a component ([`RealInput`](@ref))
+ * `vacuum` - 
+One end of a gas hose: absolute pressure across it, air mass flow through it.
+
+Connected ports share `p`, and their `mdot` sum to zero, so the air one end gives up is the air
+the other end receives. `mdot` is positive into the component that owns the port. A port left
+unconnected carries no flow: a capped hose. ([`GasPort`](@ref))
+ * `spline` - This connector represents a rotational spline with angle and torque as the potential and flow variables, respectively. ([`Spline`](@ref))
+ * `support` - This connector represents a rotational spline with angle and torque as the potential and flow variables, respectively. ([`Spline`](@ref))
+ * `mdot_fuel` - This connector represents a real signal as an output from a component ([`RealOutput`](@ref))
+ * `mdot_co2` - This connector represents a real signal as an output from a component ([`RealOutput`](@ref))
+ * `p_m` - This connector represents a real signal as an output from a component ([`RealOutput`](@ref))
 """
 @component function MapEngine(; name = nothing, __overrides = Dict{String, Any}())
   isnothing(name) && throw(ArgumentError("""
@@ -44,6 +57,10 @@ short MapEngine component description
   ### Final Parameters (assignments)
 
   ### Final Path Parameters
+  append!(__vars, @variables (pedal(t)::Real), [input = true])
+  append!(__vars, @variables (mdot_fuel(t)::Real), [output = true])
+  append!(__vars, @variables (mdot_co2(t)::Real), [output = true])
+  append!(__vars, @variables (p_m(t)::Real), [output = true])
 
   ### Variables (declarations)
 
@@ -53,6 +70,30 @@ short MapEngine component description
   __constants = Any[]
 
   ### Components
+  push!(__systems, @named vacuum = VehicleSystemsComponents.Vehicle.GasPort())
+  push!(__systems, @named spline = __Dyad__Spline())
+  push!(__systems, @named support = __Dyad__Spline())
+  # Subcomponent air of type VehicleSystemsComponents.Vehicle.Engine.AirPath
+  air_overrides = __pop_subcomponent_overrides!(__overrides, "air")
+  push!(__systems, @named air = VehicleSystemsComponents.Vehicle.Engine.AirPath(; __overrides = air_overrides))
+  # Subcomponent speed of type RotationalComponents.Sensors.VelocitySensor
+  speed_overrides = __pop_subcomponent_overrides!(__overrides, "speed")
+  push!(__systems, @named speed = RotationalComponents.Sensors.VelocitySensor(; __overrides = speed_overrides))
+  # Subcomponent torque_map of type VehicleSystemsComponents.Vehicle.Engine.CutTorqueMap
+  torque_map_overrides = __pop_subcomponent_overrides!(__overrides, "torque_map")
+  push!(__systems, @named torque_map = VehicleSystemsComponents.Vehicle.Engine.CutTorqueMap(; __overrides = torque_map_overrides))
+  # Subcomponent fuel_map of type VehicleSystemsComponents.Vehicle.Engine.CutFuelMap
+  fuel_map_overrides = __pop_subcomponent_overrides!(__overrides, "fuel_map")
+  push!(__systems, @named fuel_map = VehicleSystemsComponents.Vehicle.Engine.CutFuelMap(; __overrides = fuel_map_overrides))
+  # Subcomponent co2 of type BlockComponents.Math.Gain
+  co2_overrides = __pop_subcomponent_overrides!(__overrides, "co2")
+  push!(__systems, @named co2 = BlockComponents.Math.Gain(; k=3.09, __overrides = co2_overrides))
+  # Subcomponent torque of type RotationalComponents.Sources.TorqueSource
+  torque_overrides = __pop_subcomponent_overrides!(__overrides, "torque")
+  push!(__systems, @named torque = RotationalComponents.Sources.TorqueSource(; __overrides = torque_overrides))
+  # Subcomponent cut_logic of type VehicleSystemsComponents.Vehicle.Engine.FuelCutLogic
+  cut_logic_overrides = __pop_subcomponent_overrides!(__overrides, "cut_logic")
+  push!(__systems, @named cut_logic = VehicleSystemsComponents.Vehicle.Engine.FuelCutLogic(; __overrides = cut_logic_overrides))
 
   ### Check there are no unmatched overrides
   isempty(__overrides) || throw(ArgumentError("overrides: [$(join(keys(__overrides), ", "))] don't match names found in model. These names may exist in the model but could have been conditionally excluded. Override keys are dotted paths as written in Dyad source (e.g. inner.rate)."))
@@ -65,6 +106,20 @@ short MapEngine component description
   __assertions = []
 
   ### Equations
+  push!(__eqs, connect(pedal, air.u_thr))
+  push!(__eqs, connect(vacuum, air.vacuum))
+  push!(__eqs, connect(speed.spline, spline))
+  push!(__eqs, connect(speed.w, air.omega, torque_map.omega, fuel_map.omega))
+  push!(__eqs, connect(air.p_m, p_m, torque_map.p_m, fuel_map.p_m))
+  push!(__eqs, connect(torque_map.y, torque.tau))
+  push!(__eqs, connect(torque.spline, spline))
+  push!(__eqs, connect(torque.support, support))
+  push!(__eqs, connect(fuel_map.y, mdot_fuel, co2.u))
+  push!(__eqs, connect(co2.y, mdot_co2))
+  push!(__eqs, connect(pedal, cut_logic.pedal))
+  push!(__eqs, connect(speed.w, cut_logic.omega))
+  push!(__eqs, connect(cut_logic.cut, fuel_map.cut))
+  push!(__eqs, connect(cut_logic.cut, torque_map.cut))
 
   # Return completely constructed System
   return System(__eqs, ModelingToolkit.t_nounits, __vars, __params; systems=__systems, initial_conditions=__initial_conditions, guesses=__guesses, name, initialization_eqs=__initialization_eqs, bindings=__bindings, assertions=__assertions)
