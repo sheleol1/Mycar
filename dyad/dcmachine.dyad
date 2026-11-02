@@ -1,0 +1,187 @@
+component DCMachine
+  "Positive electrical pin"
+  p = Pin() {^p}
+  "Negative electrical pin"
+  n = Pin() {^n}
+  "Rotor shaft"
+  spline = Spline() {^spline}
+  "Housing"
+  support = Spline() {^support}
+  resistor = ElectricalComponents.Analog.Basic.Resistor(R = R) {^resistor}
+  inductor = ElectricalComponents.Analog.Basic.Inductor(L = L) {^inductor}
+  emf = ElectricalComponents.Analog.Basic.RotationalEMF(k = k) {^emf}
+  rotor = RotationalComponents.Components.Inertia(J = J) {^rotor}
+  friction = RotationalComponents.Sources.SignTorque(tau_nominal = -T_f, reg = RotationalComponents.Sources.Regularization.Linear(), w0 = w_reg) {^friction}
+  iron = RotationalComponents.Sources.SignTorque(tau_nominal = -K_i, reg = RotationalComponents.Sources.Regularization.Linear(), w0 = w_reg) {^iron}
+  windage = RotationalComponents.Sources.QuadraticSpeedDependentTorque(tau_nominal = -k_w * w_base ^ 2, w_nominal = w_base, TorqueDirection = false) {^windage}
+  constant_loss = RotationalComponents.Sources.InverseSpeedDependentTorque(tau_nominal = -C / w_reg, w_nominal = w_reg, w0 = w_reg, TorqueDirection = false) {^constant_loss}
+  "Peak shaft torque, Leaf ZE1"
+  parameter T_max::Torque = 320.0
+  "Base speed, 3283 rpm"
+  parameter w_base::AngularVelocity = 3283.0 * pi / 30.0
+  "Nominal supply voltage"
+  parameter V_nom::Voltage = 350.0
+  "Armature resistance"
+  parameter R::Resistance = 0.05
+  "Armature inductance"
+  parameter L::Inductance = 0.5e-3
+  "Rotor inertia"
+  parameter J::Inertia = 0.05
+  "Friction torque"
+  parameter T_f::Torque = 0.5
+  "Iron loss coefficient"
+  parameter K_i::Torque = 1.0
+  "Windage coefficient"
+  parameter k_w::Real = 300.0 / (10100.0 * pi / 30.0) ^ 3
+  "Constant power loss"
+  parameter C::Power = 200.0
+  "Regularization speed"
+  parameter w_reg::AngularVelocity = 10.0
+  "Loss torque at base speed"
+  parameter tau_loss_base::Torque = T_f + K_i + k_w * w_base ^ 2 + C / w_base
+  "Torque and back-EMF constant"
+  parameter k::ElectricalTorqueConstant = (V_nom + sqrt(V_nom ^ 2 - 4.0 * w_base * R * (T_max + tau_loss_base))) / (2.0 * w_base)
+  variable v::Voltage
+  variable i::Current
+  variable E::Voltage
+  variable tau_em::Torque
+  variable w::AngularVelocity
+  variable tau::Torque
+  variable P_elec::Power
+  variable P_mech::Power
+  variable P_cu::Power
+  variable P_fric::Power
+  variable P_iron::Power
+  variable P_wind::Power
+  variable P_const::Power
+  variable P_loss::Power
+relations
+  v = p.v - n.v
+  connect(p, resistor.p) {^id13}
+  connect(resistor.n, inductor.p) {^id14}
+  connect(inductor.n, emf.p) {^id15}
+  connect(emf.n, n) {^id16}
+  connect(emf.rotor, rotor.spline_a, friction.spline, iron.spline, windage.spline, constant_loss.spline) {^id17}
+  connect(rotor.spline_b, spline) {^id18}
+  connect(emf.housing, friction.support, iron.support, windage.support, constant_loss.support, support) {^id19}
+  i = p.i
+  E = emf.v
+  tau_em = -emf.tau
+  w = emf.w
+  tau = -spline.tau
+  P_elec = v * i
+  P_mech = tau * w
+  P_cu = resistor.v * resistor.i
+  P_fric = -friction.tau * w
+  P_iron = -iron.tau * w
+  P_wind = -windage.tau * w
+  P_const = -constant_loss.tau * w
+  P_loss = P_cu + P_fric + P_iron + P_wind + P_const
+metadata {
+  "_links": {
+    "p": {"Dyad": {"placement": {"diagram": {"x1": -60, "x2": 40, "y1": 30, "y2": 130}}}},
+    "n": {
+      "Dyad": {"placement": {"diagram": {"x1": -50, "x2": 50, "y1": 710, "y2": 810}}}
+    },
+    "spline": {
+      "Dyad": {"placement": {"diagram": {"x1": 970, "x2": 1070, "y1": 190, "y2": 290}}}
+    },
+    "support": {
+      "Dyad": {"placement": {"diagram": {"x1": 450, "x2": 550, "y1": 950, "y2": 1050}}}
+    },
+    "resistor": {
+      "Dyad": {"placement": {"diagram": {"x1": 130, "x2": 230, "y1": 30, "y2": 130}}}
+    },
+    "inductor": {
+      "Dyad": {"placement": {"diagram": {"x1": 270, "x2": 370, "y1": 30, "y2": 130}}}
+    },
+    "emf": {
+      "Dyad": {"placement": {"diagram": {"x1": 450, "x2": 550, "y1": 340, "y2": 440}}}
+    },
+    "rotor": {
+      "Dyad": {"placement": {"diagram": {"x1": 620, "x2": 720, "y1": 200, "y2": 300}}}
+    },
+    "friction": {
+      "Dyad": {"placement": {"diagram": {"x1": 110, "x2": 210, "y1": 650, "y2": 750}}}
+    },
+    "iron": {
+      "Dyad": {"placement": {"diagram": {"x1": 270, "x2": 370, "y1": 660, "y2": 760}}}
+    },
+    "windage": {
+      "Dyad": {"placement": {"diagram": {"x1": 460, "x2": 560, "y1": 660, "y2": 760}}}
+    },
+    "constant_loss": {
+      "Dyad": {"placement": {"diagram": {"x1": 730, "x2": 830, "y1": 670, "y2": 770}}}
+    },
+    "id13": {"Dyad": {"edges": [{"S": 1, "M": [], "E": 2}], "path": {}}},
+    "id14": {"Dyad": {"edges": [{"S": 1, "M": [], "E": 2}], "path": {}}},
+    "id15": {"Dyad": {"edges": [{"S": 1, "M": [{"x": 500, "y": 80}], "E": 2}], "path": {}}},
+    "id16": {
+      "Dyad": {
+        "edges": [
+          {
+            "S": 1,
+            "M": [{"x": 500, "y": 480}, {"x": 10, "y": 480}, {"x": 10, "y": 760}],
+            "E": 2
+          }
+        ],
+        "path": {}
+      }
+    },
+    "id17": {
+      "Dyad": {
+        "edges": [
+          {"S": 1, "M": [{"x": 560, "y": 390}], "E": -1},
+          {"S": -1, "M": [], "E": 2},
+          {"S": -1, "M": [{"x": 560, "y": 45}, {"x": 750, "y": 45}], "E": -2},
+          {"S": -2, "M": [{"x": 250, "y": 550}, {"x": 250, "y": 700}], "E": 3},
+          {"S": -2, "M": [], "E": -3},
+          {"S": -3, "M": [{"x": 410, "y": 550}, {"x": 410, "y": 710}], "E": 4},
+          {"S": -3, "M": [], "E": -4},
+          {"S": -4, "M": [{"x": 620, "y": 550}, {"x": 620, "y": 710}], "E": 5},
+          {"S": -4, "M": [{"x": 880, "y": 550}, {"x": 880, "y": 720}], "E": 6}
+        ],
+        "junctions": [
+          {"x": 560, "y": 250},
+          {"x": 750, "y": 550},
+          {"x": 750, "y": 550},
+          {"x": 890, "y": 550}
+        ],
+        "path": {}
+      }
+    },
+    "id18": {
+      "Dyad": {
+        "edges": [{"S": 1, "M": [{"x": 980, "y": 250}, {"x": 980, "y": 240}], "E": 2}],
+        "path": {}
+      }
+    },
+    "id19": {
+      "Dyad": {
+        "edges": [
+          {"S": 1, "M": [{"x": 80, "y": 390}, {"x": 80, "y": 810}], "E": -1},
+          {"S": -1, "M": [], "E": 2},
+          {"S": -1, "M": [], "E": -2},
+          {"S": -2, "M": [], "E": 3},
+          {"S": -2, "M": [], "E": -3},
+          {"S": -3, "M": [], "E": 4},
+          {"S": -3, "M": [{"x": 910, "y": 810}, {"x": 910, "y": 550}], "E": -4},
+          {"S": -4, "M": [{"x": 750, "y": 642.5}, {"x": 780, "y": 642.5}], "E": 5},
+          {
+            "S": -4,
+            "M": [{"x": 970, "y": 550}, {"x": 970, "y": 860}, {"x": 500, "y": 860}],
+            "E": 6
+          }
+        ],
+        "junctions": [
+          {"x": 160, "y": 810},
+          {"x": 320, "y": 810},
+          {"x": 510, "y": 810},
+          {"x": 750, "y": 550}
+        ],
+        "path": {}
+      }
+    }
+  }
+}
+end

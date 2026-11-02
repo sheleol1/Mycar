@@ -1,0 +1,119 @@
+component DCMachineDyno
+  "Supply voltage"
+  parameter V::Voltage = 350.0
+  "Starting motor speed [rpm]"
+  parameter rpm_start::Real = 3283.0
+  "Final motor speed [rpm]"
+  parameter rpm_end::Real = 3600.0
+  voltage = BlockComponents.Sources.Constant(k = V) {^voltage}
+  supply = ElectricalComponents.Analog.Sources.VoltageSource() {^supply}
+  machine = DCMachine() {^machine}
+  ground = ElectricalComponents.Analog.Basic.Ground() {^ground}
+  speed = BlockComponents.Sources.Ramp(height = (rpm_end - rpm_start) * pi / 30.0, offset = rpm_start * pi / 30.0, start_time = 1.0, duration = 10.0) {^speed}
+  dyno = RotationalComponents.Sources.VelocitySource() {^dyno}
+  mounts = RotationalComponents.Components.Fixed() {^mounts}
+relations
+  initial dyno.phi = 0
+  initial machine.inductor.i = 0
+  connect(voltage.y, supply.V) {^id8}
+  connect(supply.p, machine.p) {^id9}
+  connect(machine.n, supply.n) {^id10}
+  connect(supply.n, ground.g) {^id11}
+  connect(speed.y, dyno.w_ref) {^id12}
+  connect(machine.spline, dyno.spline) {^id13}
+  connect(machine.support, mounts.spline) {^id14}
+  connect(dyno.support, mounts.spline) {^id15}
+metadata {
+  "_links": {
+    "voltage": {
+      "Dyad": {"placement": {"diagram": {"x1": 60, "x2": 160, "y1": 370, "y2": 470}}}
+    },
+    "supply": {
+      "Dyad": {"placement": {"diagram": {"x1": 178, "x2": 278, "y1": 511, "y2": 611}}}
+    },
+    "machine": {
+      "Dyad": {"placement": {"diagram": {"x1": 790, "x2": 890, "y1": 50, "y2": 150}}}
+    },
+    "ground": {
+      "Dyad": {"placement": {"diagram": {"x1": 303, "x2": 403, "y1": 616, "y2": 716}}}
+    },
+    "speed": {
+      "Dyad": {"placement": {"diagram": {"x1": 570, "x2": 670, "y1": 370, "y2": 470}}}
+    },
+    "dyno": {
+      "Dyad": {"placement": {"diagram": {"x1": 810, "x2": 910, "y1": 370, "y2": 470}}}
+    },
+    "mounts": {
+      "Dyad": {"placement": {"diagram": {"x1": 590, "x2": 690, "y1": 770, "y2": 870}}}
+    },
+    "id8": {"Dyad": {"edges": [{"S": 1, "M": [{"x": 228, "y": 420}], "E": 2}], "path": {}}},
+    "id9": {
+      "Dyad": {
+        "edges": [{"S": 1, "M": [{"x": 20, "y": 561}, {"x": 20, "y": 58}], "E": 2}],
+        "path": {}
+      }
+    },
+    "id10": {
+      "Dyad": {
+        "edges": [{"S": 1, "M": [{"x": 293, "y": 126}], "E": -1}, {"S": -1, "M": [], "E": 2}],
+        "junctions": [{"x": 293, "y": 561}],
+        "path": {}
+      }
+    },
+    "id11": {"Dyad": {"edges": [{"S": 1, "M": [{"x": 353, "y": 561}], "E": 2}], "path": {}}},
+    "id12": {"Dyad": {"edges": [{"S": 1, "M": [], "E": 2}], "path": {}}},
+    "id13": {
+      "Dyad": {
+        "edges": [{"S": 1, "M": [{"x": 940, "y": 74}, {"x": 940, "y": 420}], "E": 2}],
+        "path": {}
+      }
+    },
+    "id14": {
+      "Dyad": {
+        "edges": [
+          {
+            "S": 1,
+            "M": [
+              {"x": 840, "y": 345},
+              {"x": 530, "y": 345},
+              {"x": 530, "y": 730},
+              {"x": 640, "y": 730}
+            ],
+            "E": 2
+          }
+        ],
+        "path": {}
+      }
+    },
+    "id15": {
+      "Dyad": {
+        "edges": [
+          {
+            "S": 1,
+            "M": [
+              {"x": 820, "y": 470},
+              {"x": 820, "y": 540},
+              {"x": 530, "y": 540},
+              {"x": 530, "y": 730},
+              {"x": 640, "y": 730}
+            ],
+            "E": -1
+          },
+          {"S": -1, "M": [], "E": 2}
+        ],
+        "junctions": [{"x": 640, "y": 770}],
+        "path": {}
+      }
+    }
+  }
+}
+end
+
+analysis DCMachineDynoTransient
+  extends TransientAnalysis(stop = 12.0, alg = ODEAlg.Rodas5P(), saveat = 0.01, tstops = [1.0, 11.0])
+  parameter V::Voltage = 350.0
+  parameter rpm_start::Real = 3283.0
+  parameter rpm_end::Real = 3600.0
+  model = DCMachineDyno(V = V, rpm_start = rpm_start, rpm_end = rpm_end)
+relations
+end
