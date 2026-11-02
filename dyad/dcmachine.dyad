@@ -7,14 +7,16 @@ component DCMachine
   spline = Spline() {^spline}
   "Housing"
   support = Spline() {^support}
+  field = RealInput() if field_weakening {^field}
   resistor = ElectricalComponents.Analog.Basic.Resistor(R = R) {^resistor}
   inductor = ElectricalComponents.Analog.Basic.Inductor(L = L) {^inductor}
-  emf = ElectricalComponents.Analog.Basic.RotationalEMF(k = k) {^emf}
+  emf = FieldEMF(k = k) {^emf}
   rotor = RotationalComponents.Components.Inertia(J = J) {^rotor}
   friction = RotationalComponents.Sources.SignTorque(tau_nominal = -T_f, reg = RotationalComponents.Sources.Regularization.Linear(), w0 = w_reg) {^friction}
   iron = RotationalComponents.Sources.SignTorque(tau_nominal = -K_i, reg = RotationalComponents.Sources.Regularization.Linear(), w0 = w_reg) {^iron}
   windage = RotationalComponents.Sources.QuadraticSpeedDependentTorque(tau_nominal = -k_w * w_base ^ 2, w_nominal = w_base, TorqueDirection = false) {^windage}
   constant_loss = RotationalComponents.Sources.InverseSpeedDependentTorque(tau_nominal = -C / w_reg, w_nominal = w_reg, w0 = w_reg, TorqueDirection = false) {^constant_loss}
+  structural parameter field_weakening::Boolean = false
   "Peak shaft torque, Leaf ZE1"
   parameter T_max::Torque = 320.0
   "Base speed, 3283 rpm"
@@ -64,6 +66,11 @@ relations
   connect(emf.rotor, rotor.spline_a, friction.spline, iron.spline, windage.spline, constant_loss.spline) {^id17}
   connect(rotor.spline_b, spline) {^id18}
   connect(emf.housing, friction.support, iron.support, windage.support, constant_loss.support, support) {^id19}
+  if field_weakening
+    connect(field, emf.field) {^id8}
+  else
+    emf.field = 1.0
+  end
   i = p.i
   E = emf.v
   tau_em = -emf.tau

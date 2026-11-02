@@ -9,7 +9,10 @@ if isfile(joinpath((@__DIR__) |> Base.dirname, "dyad", "experiments.jl"))
 end
 
 
+include("ConverterDyno_experiment.jl")
+include("Converter_experiment.jl")
 include("DCMachineDyno_experiment.jl")
 include("DCMachine_experiment.jl")
+include("FieldEMF_experiment.jl")
 include("Hello_experiment.jl")
 include("MyTest_experiment.jl")

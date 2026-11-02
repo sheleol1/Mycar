@@ -216,9 +216,13 @@ component.
 end
 
 
+include("ConverterDynoTransient_definition.jl")
+include("ConverterDyno_definition.jl")
+include("Converter_definition.jl")
 include("DCMachineDynoTransient_definition.jl")
 include("DCMachineDyno_definition.jl")
 include("DCMachine_definition.jl")
+include("FieldEMF_definition.jl")
 include("Hello_definition.jl")
 include("MyTest_definition.jl")
 include("World_definition.jl")

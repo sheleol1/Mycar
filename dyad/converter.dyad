@@ -1,0 +1,80 @@
+
+component Converter
+  "Battery positive terminal"
+  p_in = Pin() {^p_in}
+
+  "Motor positive terminal"
+  p_out = Pin() {^p_out}
+
+  "Common negative terminal"
+  n = Pin() {^n}
+
+  "Requested motor current"
+  i_ref = RealInput() {^i_ref}
+
+  "Magnetic field command"
+  field = RealOutput() {^field}
+
+  "Maximum motor current"
+  parameter I_max::Current = 332.2
+
+  "Maximum duty ratio"
+  parameter d_max::Real = 1.0
+
+  "Current controller time constant"
+  parameter T_i::Time = 1.0e-3
+
+  "Conduction voltage drop"
+  parameter V_on::Voltage = 1.2
+
+  "Switching frequency"
+  parameter f_s::Frequency = 5.0e3
+
+  "Switching time"
+  parameter t_sw::Time = 1.0e-6
+
+  "Smoothing parameter"
+  parameter eps::Real = 1.0e-4
+
+  variable v_in::Voltage
+  variable i_in::Current
+  variable v_out::Voltage
+  variable i_out::Current
+
+  variable d::Real
+  variable i_cmd::Current
+
+  variable P_in::Power
+  variable P_out::Power
+  variable P_cond::Power
+  variable P_sw::Power
+  variable P_loss::Power
+
+relations
+  v_in = p_in.v - n.v
+  v_out = p_out.v - n.v
+
+  i_in = p_in.i
+  i_out = -p_out.i
+
+  p_in.i + p_out.i + n.i = 0
+
+  v_out = d * v_in
+
+  i_in = d * i_out + P_loss / v_in
+
+  i_cmd = max(-I_max, min(I_max, i_ref))
+
+  T_i * der(i_out) = i_cmd - i_out
+
+  (1 - field) + (d_max - abs(d)) -
+    sqrt(((1 - field) - (d_max - abs(d))) ^ 2 + eps ^ 2) = 0
+
+  P_in = v_in * i_in
+  P_out = v_out * i_out
+
+  P_cond = V_on * abs(i_out)
+  P_sw = f_s * t_sw * v_in * abs(i_out)
+
+  P_loss = P_cond + P_sw
+end
