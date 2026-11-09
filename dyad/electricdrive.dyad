@@ -1,0 +1,170 @@
+component ElectricDrive
+  "Requested motor torque"
+  tau_ref = RealInput() {^tau_ref}
+  "Output shaft connected to the differential"
+  spline = Spline() {^spline}
+  "Motor housing and gearbox support"
+  support = Spline() {^support}
+  "Battery state of charge"
+  SoC = RealOutput() {^SoC}
+  # Battery and electrical components
+  battery = Battery() {^battery}
+  aux = VehicleSystemsComponents.Vehicle.Electric.AuxLoad(P_aux = P_aux) {^aux}
+  converter = Converter() {^converter}
+  # Motor with field weakening enabled
+  machine = DCMachine(field_weakening = true) {^machine}
+  ground = ElectricalComponents.Analog.Basic.Ground() {^ground}
+  # Reduction gear between the motor and differential
+  reduction = RotationalComponents.Components.IdealGear(ratio = ratio) {^reduction}
+  # Nissan Leaf ZE1 reduction ratio
+  parameter ratio::Real = 8.193
+  # Electrical power used by auxiliary systems
+  parameter P_aux::Power = 300.0
+relations
+  # The battery supplies the converter and auxiliary systems.
+  connect(battery.p, converter.p_in, aux.p) {^id11}
+  # Common negative electrical connection
+  connect(battery.n, converter.n, aux.n, machine.n, ground.g) {^id12}
+  # The converter supplies controlled current to the motor.
+  connect(converter.p_out, machine.p) {^id13}
+  # Field weakening adjusts the motor at higher speeds.
+  connect(converter.field, machine.field) {^id14}
+  # Transfer motor torque through the reduction gear.
+  connect(machine.spline, reduction.spline_a) {^id15}
+  connect(reduction.spline_b, spline) {^id16}
+  # Hold the motor housing and gearbox in place.
+  connect(machine.support, reduction.support, support) {^id17}
+  # Make the battery charge available to the vehicle model.
+  connect(battery.SoC, SoC) {^id18}
+  # Convert requested motor torque into a current reference.
+  converter.i_ref = tau_ref / (converter.field * machine.k)
+metadata {
+  "Dyad": {
+    "icons": {
+      "default": "dyad://VehicleSystemsComponents/Vehicle/Electric/ElectricDrive.svg"
+    }
+  },
+  "_links": {
+    "tau_ref": {
+      "Dyad": {
+        "placement": {
+          "icon": {"x1": -50, "y1": 450, "x2": 50, "y2": 550},
+          "diagram": {"x1": -50, "y1": 150, "x2": 50, "y2": 250}
+        }
+      }
+    },
+    "spline": {
+      "Dyad": {
+        "placement": {
+          "icon": {"x1": 950, "y1": 450, "x2": 1050, "y2": 550},
+          "diagram": {"x1": 950, "y1": 400, "x2": 1050, "y2": 500}
+        }
+      }
+    },
+    "support": {
+      "Dyad": {
+        "placement": {
+          "icon": {"iconName": "support", "x1": 450, "y1": 950, "x2": 550, "y2": 1050},
+          "diagram": {"iconName": "support", "x1": 788, "y1": 950, "x2": 888, "y2": 1050}
+        }
+      }
+    },
+    "SoC": {
+      "Dyad": {
+        "placement": {
+          "icon": {"x1": 450, "y1": -50, "x2": 550, "y2": 50, "rot": 270},
+          "diagram": {"x1": 135, "y1": -50, "x2": 235, "y2": 50, "rot": 270}
+        }
+      }
+    },
+    "battery": {
+      "Dyad": {
+        "placement": {"diagram": {"x1": 30, "y1": 390, "x2": 150, "y2": 510, "rot": 90}}
+      }
+    },
+    "aux": {
+      "Dyad": {
+        "placement": {"diagram": {"x1": 230, "y1": 390, "x2": 350, "y2": 510, "rot": 90}}
+      }
+    },
+    "converter": {
+      "Dyad": {"placement": {"diagram": {"x1": 380, "y1": 360, "x2": 560, "y2": 540}}}
+    },
+    "machine": {
+      "Dyad": {"placement": {"diagram": {"x1": 640, "y1": 360, "x2": 820, "y2": 540}}}
+    },
+    "ground": {
+      "Dyad": {"placement": {"diagram": {"x1": 545, "y1": 720, "x2": 625, "y2": 800}}}
+    },
+    "reduction": {
+      "Dyad": {"placement": {"diagram": {"x1": 855, "y1": 405, "x2": 945, "y2": 495}}}
+    },
+    "id11": {
+      "Dyad": {
+        "edges": [
+          {"S": 1, "M": [{"x": 90, "y": 260}], "E": -1},
+          {
+            "S": -1,
+            "M": [{"x": 340, "y": 260}, {"x": 340, "y": 390}, {"x": 378.2, "y": 390}],
+            "E": 2
+          },
+          {"S": 3, "M": [], "E": -1}
+        ],
+        "junctions": [{"x": 290, "y": 260}],
+        "path": {}
+      }
+    },
+    "id12": {
+      "Dyad": {
+        "edges": [
+          {"S": 1, "M": [{"x": 90, "y": 680}], "E": -1},
+          {"S": 2, "M": [], "E": -1},
+          {"S": -1, "M": [], "E": -2},
+          {"S": -2, "M": [{"x": 290, "y": 680}], "E": 3},
+          {"S": -3, "M": [{"x": 590, "y": 645}, {"x": 585, "y": 645}], "E": -2},
+          {
+            "S": 4,
+            "M": [{"x": 612.5, "y": 496.8}, {"x": 612.5, "y": 500}, {"x": 590, "y": 500}],
+            "E": -3
+          },
+          {"S": 5, "M": [{"x": 585, "y": 680}], "E": -3}
+        ],
+        "junctions": [{"x": 470, "y": 680}, {"x": 585, "y": 680}, {"x": 590, "y": 670}],
+        "path": {}
+      }
+    },
+    "id13": {
+      "Dyad": {
+        "edges": [
+          {
+            "S": 1,
+            "M": [{"x": 560, "y": 370}, {"x": 598.2, "y": 370}, {"x": 598.2, "y": 374.4}],
+            "E": 2
+          }
+        ],
+        "path": {}
+      }
+    },
+    "id14": {
+      "Dyad": {
+        "edges": [{"S": 1, "M": [{"x": 603.6, "y": 511.2}, {"x": 603.6, "y": 450}], "E": 2}],
+        "path": {}
+      }
+    },
+    "id15": {"Dyad": {"edges": [{"S": 1, "M": [], "E": 2}]}},
+    "id16": {"Dyad": {"edges": [{"S": 1, "M": [], "E": 2}]}},
+    "id17": {
+      "Dyad": {
+        "edges": [
+          {"S": 1, "M": [{"x": 730, "y": 650}], "E": -1},
+          {"S": 2, "M": [{"x": 830, "y": 495}], "E": -1},
+          {"S": -1, "M": [{"x": 830, "y": 770}, {"x": 838, "y": 770}], "E": 3}
+        ],
+        "junctions": [{"x": 830, "y": 650}],
+        "path": {}
+      }
+    },
+    "id18": {"Dyad": {"edges": [{"S": 1, "M": [{"x": 185, "y": 450}], "E": 2}]}}
+  }
+}
+end
