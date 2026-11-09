@@ -1,82 +1,144 @@
-
 component ConverterDyno
   "Supply voltage"
   parameter V::Voltage = 350.0
-
   "Requested current"
   parameter I_ref::Current = 500.0
-
   "Starting speed [rpm]"
   parameter rpm_start::Real = 0.0
-
   "Final speed [rpm]"
   parameter rpm_end::Real = 10000.0
-
   voltage = BlockComponents.Sources.Constant(k = V) {^voltage}
-
   supply = ElectricalComponents.Analog.Sources.VoltageSource() {^supply}
-
   current = BlockComponents.Sources.Constant(k = I_ref) {^current}
-
   converter = Converter() {^converter}
-
   machine = DCMachine(field_weakening = true) {^machine}
-
   ground = ElectricalComponents.Analog.Basic.Ground() {^ground}
-
-  speed = BlockComponents.Sources.Ramp(
-    height = (rpm_end - rpm_start) * pi / 30.0,
-    offset = rpm_start * pi / 30.0,
-    start_time = 1.0,
-    duration = 100.0
-  ) {^speed}
-
+  speed = BlockComponents.Sources.Ramp(height = (rpm_end - rpm_start) * pi / 30.0, offset = rpm_start * pi / 30.0, start_time = 1.0, duration = 100.0) {^speed}
   dyno = RotationalComponents.Sources.VelocitySource() {^dyno}
-
   mounts = RotationalComponents.Components.Fixed() {^mounts}
-
 relations
   initial dyno.phi = 0
   initial converter.i_out = 0
-
-  connect(voltage.y, supply.V) {^id1}
-
-  connect(supply.p, converter.p_in) {^id2}
-
-  connect(converter.p_out, machine.p) {^id3}
-
-  connect(converter.n, machine.n, supply.n, ground.g) {^id4}
-
-  connect(current.y, converter.i_ref) {^id7}
-
-  connect(converter.field, machine.field) {^id8}
-
-  connect(speed.y, dyno.w_ref) {^id9}
-
-  connect(machine.spline, dyno.spline) {^id10}
-
-  connect(machine.support, mounts.spline) {^id11}
-
-  connect(dyno.support, mounts.spline) {^id12}
+  connect(voltage.y, supply.V) {^id10}
+  connect(supply.p, converter.p_in) {^id11}
+  connect(converter.p_out, machine.p) {^id12}
+  connect(converter.n, machine.n, supply.n, ground.g) {^id13}
+  connect(current.y, converter.i_ref) {^id14}
+  connect(converter.field, machine.field) {^id15}
+  connect(speed.y, dyno.w_ref) {^id16}
+  connect(machine.spline, dyno.spline) {^id17}
+  connect(machine.support, mounts.spline) {^id18}
+  connect(dyno.support, mounts.spline) {^id19}
+metadata {
+  "_links": {
+    "voltage": {
+      "Dyad": {"placement": {"diagram": {"x1": 303, "x2": 403, "y1": 406, "y2": 506}}}
+    },
+    "supply": {
+      "Dyad": {"placement": {"diagram": {"x1": 438, "x2": 538, "y1": 511, "y2": 611}}}
+    },
+    "current": {
+      "Dyad": {"placement": {"diagram": {"x1": 20, "x2": 120, "y1": 401, "y2": 501}}}
+    },
+    "converter": {
+      "Dyad": {"placement": {"diagram": {"x1": 180, "x2": 280, "y1": 401, "y2": 501}}}
+    },
+    "machine": {
+      "Dyad": {"placement": {"diagram": {"x1": 306, "x2": 406, "y1": 190, "y2": 290}}}
+    },
+    "ground": {
+      "Dyad": {"placement": {"diagram": {"x1": 563, "x2": 663, "y1": 616, "y2": 716}}}
+    },
+    "speed": {
+      "Dyad": {"placement": {"diagram": {"x1": 240, "x2": 340, "y1": 50, "y2": 150}}}
+    },
+    "dyno": {
+      "Dyad": {"placement": {"diagram": {"x1": 490, "x2": 590, "y1": 50, "y2": 150}}}
+    },
+    "mounts": {
+      "Dyad": {"placement": {"diagram": {"x1": 563, "x2": 663, "y1": 411, "y2": 511}}}
+    },
+    "id10": {"Dyad": {"edges": [{"S": 1, "M": [{"x": 488, "y": 456}], "E": 2}], "path": {}}},
+    "id11": {
+      "Dyad": {
+        "edges": [{"S": 1, "M": [{"x": 140, "y": 561}, {"x": 140, "y": 451}], "E": 2}],
+        "path": {}
+      }
+    },
+    "id12": {
+      "Dyad": {
+        "edges": [
+          {
+            "S": 1,
+            "M": [
+              {"x": 150, "y": 451},
+              {"x": 150, "y": 230},
+              {"x": 290, "y": 230},
+              {"x": 290, "y": 198}
+            ],
+            "E": 2
+          }
+        ],
+        "path": {}
+      }
+    },
+    "id13": {
+      "Dyad": {
+        "edges": [
+          {
+            "S": 1,
+            "M": [{"x": 170, "y": 451}, {"x": 170, "y": 551}, {"x": 290, "y": 551}],
+            "E": -1
+          },
+          {"S": -1, "M": [{"x": 290, "y": 266}], "E": 2},
+          {"S": -1, "M": [{"x": 553, "y": 356}], "E": -2},
+          {"S": -2, "M": [], "E": 3},
+          {"S": -2, "M": [{"x": 613, "y": 561}], "E": 4}
+        ],
+        "junctions": [{"x": 290, "y": 356}, {"x": 553, "y": 561}],
+        "path": {}
+      }
+    },
+    "id14": {"Dyad": {"edges": [{"S": 1, "M": [], "E": 2}], "path": {}}},
+    "id15": {
+      "Dyad": {
+        "edges": [{"S": 1, "M": [{"x": 160, "y": 451}, {"x": 160, "y": 240}], "E": 2}],
+        "path": {}
+      }
+    },
+    "id16": {"Dyad": {"edges": [{"S": 1, "M": [], "E": 2}], "path": {}}},
+    "id17": {
+      "Dyad": {
+        "edges": [{"S": 1, "M": [{"x": 720, "y": 214}, {"x": 720, "y": 100}], "E": 2}],
+        "path": {}
+      }
+    },
+    "id18": {
+      "Dyad": {
+        "edges": [{"S": 1, "M": [{"x": 356, "y": 345}, {"x": 613, "y": 345}], "E": 2}],
+        "path": {}
+      }
+    },
+    "id19": {
+      "Dyad": {
+        "edges": [
+          {"S": 1, "M": [{"x": 540, "y": 335}, {"x": 553, "y": 335}], "E": -1},
+          {"S": -1, "M": [{"x": 613, "y": 345}], "E": 2}
+        ],
+        "junctions": [{"x": 553, "y": 345}],
+        "path": {}
+      }
+    }
+  }
+}
 end
 
 analysis ConverterDynoTransient
-  extends TransientAnalysis(
-    stop = 102.0,
-    alg = ODEAlg.Rodas5P(),
-    saveat = 0.05,
-    tstops = [1.0, 101.0]
-  )
-
+  extends TransientAnalysis(stop = 102.0, alg = ODEAlg.Rodas5P(), saveat = 0.05, tstops = [1.0, 101.0])
   parameter V::Voltage = 350.0
   parameter I_ref::Current = 500.0
   parameter rpm_start::Real = 0.0
   parameter rpm_end::Real = 10000.0
-
-  model = ConverterDyno(
-    V = V,
-    I_ref = I_ref,
-    rpm_start = rpm_start,
-    rpm_end = rpm_end
-  )
+  model = ConverterDyno(V = V, I_ref = I_ref, rpm_start = rpm_start, rpm_end = rpm_end)
+relations
 end

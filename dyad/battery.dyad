@@ -1,0 +1,139 @@
+component Battery
+  "Positive electrical terminal"
+  p = Pin() {^p}
+  "Negative electrical terminal"
+  n = Pin() {^n}
+  # The voltage source represents the battery cells.
+  ocv = BlockComponents.Sources.Constant(k = E) {^ocv}
+  cell = ElectricalComponents.Analog.Sources.VoltageSource() {^cell}
+  # Internal resistance causes voltage drop and energy losses.
+  resistor = ElectricalComponents.Analog.Basic.Resistor(R = R0) {^resistor}
+  # Measure current to calculate the remaining charge.
+  meter = ElectricalComponents.Analog.Sensors.CurrentSensor() {^meter}
+  counter = BlockComponents.Continuous.Integrator(k = -1 / Q_nom, x0 = SoC0) {^counter}
+  "Battery state of charge"
+  SoC = RealOutput() {^SoC}
+  # Nissan Leaf ZE1 battery parameters
+  parameter E::Voltage = 350.0
+  parameter R0::Resistance = 0.1
+  parameter Q_nom::ElectricCharge = 40.0e3 * 3600.0 / 350.0
+  parameter SoC0::Real = 0.9
+  "Voltage measured across the battery terminals"
+  variable v::Voltage
+  "Current leaving the battery during discharge"
+  variable i::Current
+relations
+  # Supply the cell with its open-circuit voltage.
+  connect(ocv.y, cell.V) {^id9}
+  # Electrical path through the battery.
+  connect(n, cell.n) {^id10}
+  connect(cell.p, resistor.p) {^id11}
+  connect(resistor.n, meter.p) {^id12}
+  connect(meter.n, p) {^id13}
+  # Use the measured current to calculate the state of charge.
+  connect(meter.i, counter.u) {^id14}
+  connect(counter.y, SoC) {^id15}
+  # Values used later in the electric vehicle model.
+  v = p.v - n.v
+  i = meter.i
+metadata {
+  "Dyad": {
+    "icons": {"default": "dyad://VehicleSystemsComponents/Vehicle/Electric/Battery.svg"}
+  },
+  "_links": {
+    "p": {
+      "Dyad": {
+        "placement": {
+          "icon": {"iconName": "pos", "x1": -50, "y1": 450, "x2": 50, "y2": 550},
+          "diagram": {"iconName": "pos", "x1": -50, "y1": 450, "x2": 50, "y2": 550}
+        }
+      }
+    },
+    "n": {
+      "Dyad": {
+        "placement": {
+          "icon": {"iconName": "neg", "x1": 950, "y1": 450, "x2": 1050, "y2": 550},
+          "diagram": {"iconName": "neg", "x1": 950, "y1": 450, "x2": 1050, "y2": 550}
+        }
+      }
+    },
+    "ocv": {
+      "Dyad": {
+        "placement": {"diagram": {"x1": 340, "y1": 330, "x2": 460, "y2": 450, "rot": 180}}
+      }
+    },
+    "cell": {
+      "Dyad": {
+        "placement": {"diagram": {"x1": 140, "y1": 330, "x2": 260, "y2": 450, "rot": 90}}
+      }
+    },
+    "resistor": {
+      "Dyad": {"placement": {"diagram": {"x1": 340, "y1": 140, "x2": 460, "y2": 260}}}
+    },
+    "meter": {
+      "Dyad": {"placement": {"diagram": {"x1": 590, "y1": 140, "x2": 710, "y2": 260}}}
+    },
+    "counter": {
+      "Dyad": {
+        "placement": {"diagram": {"x1": 740, "y1": 330, "x2": 860, "y2": 450, "rot": 180}}
+      }
+    },
+    "SoC": {
+      "Dyad": {
+        "placement": {
+          "icon": {"x1": 450, "y1": -50, "x2": 550, "y2": 50, "rot": 270},
+          "diagram": {"x1": 450, "y1": -50, "x2": 550, "y2": 50, "rot": 270}
+        }
+      }
+    },
+    "id9": {"Dyad": {"edges": [{"S": 1, "M": [], "E": 2}]}},
+    "id10": {
+      "Dyad": {
+        "edges": [{"S": 1, "M": [{"x": 1000, "y": 800}, {"x": 200, "y": 800}], "E": 2}]
+      }
+    },
+    "id11": {"Dyad": {"edges": [{"S": 1, "M": [{"x": 200, "y": 200}], "E": 2}]}},
+    "id12": {"Dyad": {"edges": [{"S": 1, "M": [], "E": 2}]}},
+    "id13": {
+      "Dyad": {
+        "edges": [
+          {
+            "S": 1,
+            "M": [
+              {"x": 740, "y": 200},
+              {"x": 740, "y": 120},
+              {"x": 50, "y": 120},
+              {"x": 50, "y": 500}
+            ],
+            "E": 2
+          }
+        ],
+        "path": {}
+      }
+    },
+    "id14": {
+      "Dyad": {
+        "edges": [
+          {
+            "S": 1,
+            "M": [{"x": 650, "y": 300}, {"x": 900, "y": 300}, {"x": 900, "y": 390}],
+            "E": 2
+          }
+        ]
+      }
+    },
+    "id15": {
+      "Dyad": {
+        "edges": [
+          {
+            "S": 1,
+            "M": [{"x": 530, "y": 390}, {"x": 530, "y": 20}, {"x": 500, "y": 20}],
+            "E": 2
+          }
+        ],
+        "path": {}
+      }
+    }
+  }
+}
+end

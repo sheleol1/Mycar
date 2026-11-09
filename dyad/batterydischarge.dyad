@@ -1,0 +1,49 @@
+
+component BatteryDischarge
+  # Current drawn from the battery during the test.
+  # A negative value means the battery is charging.
+  parameter I_load::Current = 100.0
+
+  # Apply the load after the first 60 seconds.
+  load_profile = BlockComponents.Sources.Step(
+    height = I_load,
+    offset = 0.0,
+    start_time = 60.0
+  ) {^load_profile}
+
+  load = ElectricalComponents.Analog.Sources.CurrentSource() {^load}
+  battery = Battery() {^battery}
+  ground = ElectricalComponents.Analog.Basic.Ground() {^ground}
+
+relations
+  # Control how much current the load draws.
+  connect(load_profile.y, load.I) {^id1}
+
+  # Connect the battery to the electrical load.
+  connect(battery.p, load.p) {^id2}
+  connect(battery.n, load.n, ground.g) {^id3}
+
+metadata {
+  "_links": {
+    "load_profile": {"Dyad": {"placement": {"diagram": {"x1": 260, "y1": 150, "x2": 360, "y2": 250}}}},
+    "load": {"Dyad": {"placement": {"diagram": {"x1": 450, "y1": 300, "x2": 550, "y2": 400}}}},
+    "battery": {"Dyad": {"placement": {"diagram": {"x1": 450, "y1": 600, "x2": 550, "y2": 700}}}},
+    "ground": {"Dyad": {"placement": {"diagram": {"x1": 620, "y1": 760, "x2": 700, "y2": 840}}}},
+    "id1": {"Dyad": {"edges": [{"S": 1, "M": [{"x": 500, "y": 200}], "E": 2}]}},
+    "id2": {"Dyad": {"edges": [{"S": 1, "M": [{"x": 380, "y": 650}, {"x": 380, "y": 350}], "E": 2}]}},
+    "id3": {"Dyad": {"edges": [{"S": 1, "M": [], "E": -1}, {"S": -1, "M": [{"x": 660, "y": 350}], "E": 2}, {"S": -1, "M": [], "E": 3}], "junctions": [{"x": 660, "y": 650}]}}
+  }
+}
+end
+
+analysis BatteryDischargeTransient
+  extends TransientAnalysis(
+    stop = 1860.0,
+    tstops = [60.0]
+  )
+
+  # Current used during the discharge test.
+  parameter I_load::Current = 100.0
+
+  model = BatteryDischarge(I_load = I_load)
+end
