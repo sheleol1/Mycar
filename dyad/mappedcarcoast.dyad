@@ -1,0 +1,55 @@
+component MappedCarCoast
+  "Initial road speed [km/h]"
+  parameter speed_kmh::Real = 90
+
+  "Pedal setting that initially maintains the speed"
+  parameter pedal_cmd::Real = 0.0916
+
+  "Initial engine speed [rpm]"
+  parameter rpm0::Real = 2182
+
+  "Initial manifold absolute pressure [Pa]"
+  parameter p_m0::Dyad.Pressure = 54420
+
+  "Release the accelerator at 5 s"
+  pedal = BlockComponents.Sources.Step(
+    height = -pedal_cmd,
+    offset = pedal_cmd,
+    start_time = 5
+  )
+
+  "Start the CVT at the ratio matching road and engine speeds"
+  car = mycar.MappedCar(
+    ratio_initial = rpm0 * pi / 30 * 0.31 / (speed_kmh / 3.6)
+  )
+
+    "Apply 4000 N of braking force at 5 s"
+  brake_cmd = BlockComponents.Sources.Step(
+    offset = 0,
+    height = 4000,
+    start_time = 5
+  )
+
+relations
+  connect(pedal.y, car.pedal)
+
+  "Start at position zero and the specified road speed"
+  initial car.body.mass.s = 0
+  initial car.body.mass.v = speed_kmh / 3.6
+
+  "Convert initial engine speed from rpm to rad/s"
+  initial car.flywheel.w = rpm0 * pi / 30
+
+  "Set initial shaft angles"
+  initial car.flywheel.phi = 0
+  initial car.driveline.clutch.spline_b.phi = 0
+
+  "Start the manifold at its cruise pressure"
+  initial car.engine.air.manifold.p = p_m0
+  connect(brake_cmd.y, car.F_brake)
+end
+
+analysis MappedCarCoastTransient
+  extends TransientAnalysis(stop = 100)
+  model = MappedCarCoast()
+end

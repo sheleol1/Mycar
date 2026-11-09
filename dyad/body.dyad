@@ -1,0 +1,128 @@
+"short Body component description"
+component Body
+  flange = Dyad.Flange() {^flange}
+  mass = TranslationalComponents.Components.Mass(m = m) {^mass}
+  incl_constant = BlockComponents.Sources.Constant(k = 0) {^incl_constant}
+  cr_constant = BlockComponents.Sources.Constant(k = f_r) {^cr_constant}
+  rolling = TranslationalComponents.Components.RollingResistance(fWeight = m * g) {^rolling}
+  drag = TranslationalComponents.Sources.QuadraticSpeedDependentForce(ForceDirection = false, f_nominal = -0.5 * rho * CdA * v_nominal ^ 2, v_nominal = v_nominal) {^drag}
+  ground = TranslationalComponents.Components.Fixed() {^ground}
+  "Vehicle mass"
+  parameter m::Dyad.Mass = 1400
+  "Aerodynamic drag area, Cd * A"
+  parameter CdA::Area = 0.63
+  "Air density"
+  parameter rho::Density = 1.2
+  "Rolling resistance coefficient"
+  parameter f_r::Real = 0.012
+  "Gravitational acceleration"
+  parameter g::Acceleration = 9.80665
+  "Speed at which the drag force is specified"
+  parameter v_nominal::Velocity = 30
+relations
+  connect(cr_constant.y, rolling.cr) {^id8}
+  connect(incl_constant.y, rolling.inclination) {^id9}
+  connect(rolling.flange, mass.flange_a, drag.flange) {^id10}
+  connect(drag.flange, flange) {^id11}
+  connect(drag.support, ground.flange, rolling.support) {^id12}
+metadata {
+  "Dyad": {
+    "experiments": {},
+    "tests": {},
+    "labels": [
+      {
+        "label": "$(instance)",
+        "x": 500,
+        "y": 1100,
+        "rot": 0,
+        "layer": "icon",
+        "attrs": {}
+      }
+    ],
+    "icons": {"default": "dyad://Dyad/Default.svg"},
+    "path": {},
+    "doc": {"behavior": true},
+    "deprecated": null,
+    "panel": {}
+  },
+  "_links": {
+    "flange": {
+      "Dyad": {"placement": {"diagram": {"x1": 960, "x2": 1040, "y1": 460, "y2": 540}}}
+    },
+    "mass": {
+      "Dyad": {"placement": {"diagram": {"x1": 700, "x2": 800, "y1": 200, "y2": 300}}}
+    },
+    "incl_constant": {
+      "Dyad": {"placement": {"diagram": {"x1": -50, "x2": 50, "y1": 450, "y2": 550}}}
+    },
+    "cr_constant": {"Dyad": {"placement": {"diagram": {"x1": 40, "x2": 140, "y1": 30, "y2": 130}}}},
+    "rolling": {
+      "Dyad": {"placement": {"diagram": {"x1": 240, "x2": 340, "y1": 200, "y2": 300}}}
+    },
+    "drag": {
+      "Dyad": {
+        "placement": {"diagram": {"x1": 450, "x2": 550, "y1": 650, "y2": 550, "rot": 180}}
+      }
+    },
+    "ground": {
+      "Dyad": {"placement": {"diagram": {"x1": 450, "x2": 550, "y1": 950, "y2": 1050}}}
+    },
+    "id8": {
+      "Dyad": {
+        "edges": [{"S": 1, "M": [{"x": 192.5, "y": 80}, {"x": 192.5, "y": 220}], "E": 2}],
+        "path": {}
+      }
+    },
+    "id9": {
+      "Dyad": {
+        "edges": [{"S": 1, "M": [{"x": 147.5, "y": 500}, {"x": 147.5, "y": 275}], "E": 2}],
+        "path": {}
+      }
+    },
+    "id10": {
+      "Dyad": {
+        "edges": [
+          {"S": 1, "M": [], "E": -1},
+          {"S": -1, "M": [], "E": 2},
+          {
+            "S": 3,
+            "M": [
+              {"x": 390, "y": 600},
+              {"x": 390, "y": 480},
+              {"x": 520, "y": 480},
+              {"x": 520, "y": 270},
+              {"x": 420, "y": 270}
+            ],
+            "E": -1
+          }
+        ],
+        "junctions": [{"x": 420, "y": 250}],
+        "path": {}
+      }
+    },
+    "id11": {
+      "Dyad": {
+        "edges": [
+          {
+            "S": 1,
+            "M": [{"x": 410, "y": 600}, {"x": 410, "y": 490}, {"x": 1000, "y": 490}],
+            "E": 2
+          }
+        ],
+        "path": {}
+      }
+    },
+    "id12": {
+      "Dyad": {
+        "edges": [
+          {"S": 1, "M": [], "E": -1},
+          {"S": -1, "M": [], "E": 2},
+          {"S": 3, "M": [{"x": 290, "y": 710}], "E": -1}
+        ],
+        "junctions": [{"x": 500, "y": 710}],
+        "path": {}
+      }
+    }
+  }
+}
+end

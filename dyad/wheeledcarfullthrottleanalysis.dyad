@@ -1,0 +1,27 @@
+"Full-throttle acceleration with wheel inertia over 300 seconds."
+analysis WheeledCarFullThrottleTransient
+  extends Dyad.TransientAnalysis(stop = 300)
+  model = mycar.WheeledCarFullThrottle()
+relations
+metadata {
+  "Dyad": {
+    "experiments": {},
+    "tests": {},
+    "labels": [
+      {
+        "label": "$(instance)",
+        "x": 500,
+        "y": 1100,
+        "rot": 0,
+        "layer": "icon",
+        "attrs": {}
+      }
+    ],
+    "icons": {"default": "dyad://Dyad/Default.svg"},
+    "path": {},
+    "doc": {"behavior": true},
+    "deprecated": null,
+    "panel": {}
+  }
+}
+end

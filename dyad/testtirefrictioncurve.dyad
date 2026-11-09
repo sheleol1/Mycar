@@ -1,0 +1,41 @@
+"Tests the tyre curve by sweeping slip from -1 to +1."
+component TestTireFrictionCurve
+  "Changes slip from -1 to +1 over two seconds."
+  slip = BlockComponents.Sources.Ramp(
+    offset = -1,
+    height = 2,
+    duration = 2,
+    start_time = 0
+  ) {^slip}
+
+  "Tyre friction model being tested."
+  curve = mycar.TireFrictionCurve() {^curve}
+
+relations
+  connect(slip.y, curve.kappa) {^slip_wire}
+
+metadata {
+  "_links": {
+    "slip": {
+      "Dyad": {
+        "placement": {
+          "diagram": {"x1": 150, "x2": 250, "y1": 450, "y2": 550}
+        }
+      }
+    },
+    "curve": {
+      "Dyad": {
+        "placement": {
+          "diagram": {"x1": 550, "x2": 650, "y1": 450, "y2": 550}
+        }
+      }
+    },
+    "slip_wire": {
+      "Dyad": {
+        "edges": [{"S": 1, "M": [], "E": 2}],
+        "path": {}
+      }
+    }
+  }
+}
+end

@@ -1,0 +1,53 @@
+"Full throttle from rest on a slippery flat road: the wheel spins up, the car barely moves."
+component SlipCarStandingStart
+  "Full throttle"
+  cmd = BlockComponents.Sources.Constant(k = 150) {^cmd}
+  "Flat road"
+  road = BlockComponents.Sources.Constant(k = 0) {^road}
+  "Slippery road; 1.0 is dry"
+  friction = BlockComponents.Sources.Constant(k = 0.2) {^friction}
+  car = SlipCar() {^car}
+relations
+  connect(cmd.y, car.tau_cmd) {^id5}
+  connect(road.y, car.grade) {^id6}
+  connect(friction.y, car.mu_scale) {^id7}
+  initial car.body.mass.s = 0
+  initial car.body.mass.v = 0
+  initial car.engine.lag.x = 0
+  initial car.wheel_inertia.phi = 0
+  initial car.wheel_inertia.w = 0
+metadata {
+  "_links": {
+    "cmd": {
+      "Dyad": {"placement": {"diagram": {"x1": 90, "x2": 190, "y1": 600, "y2": 700}}}
+    },
+    "road": {
+      "Dyad": {"placement": {"diagram": {"x1": 90, "x2": 190, "y1": 260, "y2": 360}}}
+    },
+    "friction": {
+      "Dyad": {"placement": {"diagram": {"x1": 90, "x2": 190, "y1": 430, "y2": 530}}}
+    },
+    "car": {
+      "Dyad": {"placement": {"diagram": {"x1": 620, "x2": 820, "y1": 410, "y2": 610}}}
+    },
+    "id5": {
+      "Dyad": {
+        "edges": [{"S": 1, "M": [{"x": 578, "y": 650}, {"x": 578, "y": 582}], "E": 2}],
+        "path": {}
+      }
+    },
+    "id6": {
+      "Dyad": {
+        "edges": [{"S": 1, "M": [{"x": 582, "y": 310}, {"x": 582, "y": 428}], "E": 2}],
+        "path": {}
+      }
+    },
+    "id7": {
+      "Dyad": {
+        "edges": [{"S": 1, "M": [{"x": 490, "y": 480}, {"x": 490, "y": 452}], "E": 2}],
+        "path": {}
+      }
+    }
+  }
+}
+end
