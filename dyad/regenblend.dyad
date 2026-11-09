@@ -1,0 +1,126 @@
+
+component RegenBlend
+
+  "Requested torque at the motor shaft"
+  tau_ref = RealInput() {^tau_ref}
+
+  "Vehicle speed in km/h"
+  v = RealInput() {^v}
+
+  "ABS activity signal, used when abs_rule is enabled"
+  abs_active = RealInput() if abs_rule {^abs_active}
+
+  "Torque assigned to the electric motor"
+  tau_motor = RealOutput() {^tau_motor}
+
+  "Friction braking torque for each wheel"
+  tau_brake = RealOutput() {^tau_brake}
+
+  # Nissan Leaf reduction ratio
+  parameter ratio::Real = 8.193
+
+  # Wheel radius
+  parameter radius::Length = 0.31
+
+  # Maximum motor torque
+  parameter tau_max::Torque = 320.0
+
+  # Maximum battery charging power
+  parameter P_charge::Power = 80.5e3
+
+  # Regenerative braking fades below 10 km/h
+  parameter v_fade::Real = 10.0
+
+  # Optional ABS coordination
+  structural parameter abs_rule::Boolean = false
+
+  # Reduce regenerative braking when ABS is active.
+  parameter withdraw::Real = 1.0 if abs_rule
+  parameter T_withdraw::Time = 0.03 if abs_rule
+  parameter T_return::Time = 0.5 if abs_rule
+
+  # Motor speed calculated from vehicle speed
+  variable w::AngularVelocity
+
+  # Low-speed reduction factor
+  variable fade::Real
+
+  # Available regenerative braking limits
+  variable tau_power::Torque
+  variable tau_fade::Torque
+  variable tau_regen_max::Torque
+
+  # Requested and available regenerative torque
+  variable tau_demand::Torque
+  variable tau_regen::Torque
+
+  # Share of regenerative braking allowed by ABS
+  variable allow::Real if abs_rule
+
+relations
+
+  # Calculate motor speed from vehicle speed.
+  w = max(v, 0.0) / 3.6 * ratio / radius
+
+  # Reduce regenerative braking at low speeds.
+  fade = min(max(v / v_fade, 0.0), 1.0)
+
+  # Charging power determines the available braking torque.
+  # The lower limit avoids division by zero.
+  tau_power = P_charge / max(w, 1.0)
+
+  # Torque available after low-speed reduction
+  tau_fade = fade * tau_max
+
+  # ABS coordination is used in the hard-stop test.
+  if abs_rule
+    initial allow = 1.0
+
+    # Reduce regeneration quickly when ABS becomes active.
+    # Restore it more gradually when ABS is inactive.
+    der(allow) = ifelse(
+      withdraw * abs_active > 0.5,
+      -allow / T_withdraw,
+      (1.0 - allow) / T_return
+    )
+
+    tau_regen_max = allow * min(tau_max, min(tau_power, tau_fade))
+  else
+    tau_regen_max = min(tau_max, min(tau_power, tau_fade))
+  end
+
+  # Negative requested torque represents braking.
+  tau_demand = max(-tau_ref, 0.0)
+
+  # Use regenerative braking within the available limits.
+  tau_regen = min(tau_demand, tau_regen_max)
+
+  # Send the motor its requested driving or braking torque.
+  tau_motor = max(tau_ref, 0.0) - tau_regen
+
+  # Remaining braking demand is divided between four wheels.
+  tau_brake = (tau_demand - tau_regen) * ratio / 4.0
+
+metadata {
+  "Dyad": {
+    "icons": {
+      "default": "dyad://VehicleSystemsComponents/Vehicle/Electric/RegenBlend.svg"
+    },
+    "labels": [
+      {
+        "label": "$(instance)",
+        "x": 500,
+        "y": 1100,
+        "rot": 0
+      }
+    ]
+  },
+  "_links": {
+    "tau_ref": {"Dyad": {"placement": {"icon": {"x1": -50, "y1": 250, "x2": 50, "y2": 350}}}},
+    "v": {"Dyad": {"placement": {"icon": {"x1": -50, "y1": 650, "x2": 50, "y2": 750}}}},
+    "abs_active": {"Dyad": {"placement": {"icon": {"x1": 250, "y1": 950, "x2": 350, "y2": 1050, "rot": 270}}}},
+    "tau_motor": {"Dyad": {"placement": {"icon": {"x1": 950, "y1": 250, "x2": 1050, "y2": 350}}}},
+    "tau_brake": {"Dyad": {"placement": {"icon": {"x1": 950, "y1": 650, "x2": 1050, "y2": 750}}}}
+  }
+}
+end

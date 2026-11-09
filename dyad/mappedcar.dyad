@@ -1,0 +1,170 @@
+component MappedCar
+  "Initial engine-to-wheel ratio"
+  parameter ratio_initial::Real = 12
+  pedal = RealInput() {^pedal}
+  v_kmh = RealOutput() {^v_kmh}
+  p_m = RealOutput() {^p_m}
+  fuel_lph = RealOutput() {^fuel_lph}
+  engine = MapEngine() {^engine}
+  "Engine rotational inertia [kg.m²]"
+  flywheel = RotationalComponents.Components.Inertia(J = 0.15) {^flywheel}
+  driveline = VehicleSystemsComponents.Vehicle.CVTDriveline(ratio_initial = ratio_initial) {^driveline}
+  body = Body() {^body}
+  vsensor = TranslationalComponents.Sensors.VelocitySensor() {^vsensor}
+  to_kmh = BlockComponents.Math.Gain(k = 3.6) {^to_kmh}
+  to_lph = BlockComponents.Math.Gain(k = 4832.2) {^to_lph}
+  rot_ground = RotationalComponents.Components.Fixed() {^rot_ground}
+  trans_ground = TranslationalComponents.Components.Fixed() {^trans_ground}
+    "Requested braking force [N]"
+  F_brake = RealInput()
+
+  "Wheel brake acting between the car and the road"
+  brake = VehicleSystemsComponents.Vehicle.RoadBrake()
+relations
+  connect(pedal, engine.pedal) {^id14}
+  connect(pedal, driveline.pedal) {^id15}
+  connect(engine.spline, flywheel.spline_a) {^id16}
+  connect(flywheel.spline_b, driveline.spline) {^id17}
+  connect(engine.support, rot_ground.spline) {^id18}
+  connect(driveline.support_r, rot_ground.spline) {^id19}
+  connect(driveline.flange, body.flange) {^id20}
+  connect(driveline.support_t, trans_ground.flange) {^id21}
+  connect(vsensor.flange, body.flange) {^id22}
+  connect(vsensor.v, to_kmh.u) {^id23}
+  connect(to_kmh.y, v_kmh) {^id24}
+  connect(engine.p_m, p_m) {^id25}
+  connect(engine.mdot_fuel, to_lph.u) {^id26}
+  connect(to_lph.y, fuel_lph) {^id27}
+  connect(F_brake, brake.F_cmd)
+  connect(brake.flange, body.flange)
+  connect(brake.support, trans_ground.flange)
+metadata {
+  "_links": {
+    "pedal": {
+      "Dyad": {"placement": {"diagram": {"x1": -30, "x2": 70, "y1": 450, "y2": 550}}}
+    },
+    "v_kmh": {
+      "Dyad": {"placement": {"diagram": {"x1": 960, "x2": 1060, "y1": 280, "y2": 380}}}
+    },
+    "p_m": {
+      "Dyad": {"placement": {"diagram": {"x1": 970, "x2": 1070, "y1": 850, "y2": 950}}}
+    },
+    "fuel_lph": {
+      "Dyad": {"placement": {"diagram": {"x1": 970, "x2": 1070, "y1": 700, "y2": 800}}}
+    },
+    "engine": {
+      "Dyad": {"placement": {"diagram": {"x1": 150, "x2": 250, "y1": 500, "y2": 600}}}
+    },
+    "flywheel": {
+      "Dyad": {"placement": {"diagram": {"x1": 300, "x2": 400, "y1": 291, "y2": 391}}}
+    },
+    "driveline": {
+      "Dyad": {"placement": {"diagram": {"x1": 435, "x2": 535, "y1": 220, "y2": 320}}}
+    },
+    "body": {
+      "Dyad": {"placement": {"diagram": {"x1": 300, "x2": 400, "y1": 20, "y2": 120}}}
+    },
+    "vsensor": {
+      "Dyad": {"placement": {"diagram": {"x1": 435, "x2": 535, "y1": 20, "y2": 120}}}
+    },
+    "to_kmh": {
+      "Dyad": {"placement": {"diagram": {"x1": 650, "x2": 750, "y1": 110, "y2": 210}}}
+    },
+    "to_lph": {
+      "Dyad": {"placement": {"diagram": {"x1": 420, "x2": 520, "y1": 700, "y2": 800}}}
+    },
+    "rot_ground": {
+      "Dyad": {"placement": {"diagram": {"x1": 640, "x2": 740, "y1": 630, "y2": 730}}}
+    },
+    "trans_ground": {
+      "Dyad": {"placement": {"diagram": {"x1": 570, "x2": 670, "y1": 430, "y2": 530}}}
+    },
+    "id14": {
+      "Dyad": {
+        "edges": [{"S": 1, "M": [{"x": 60, "y": 500}, {"x": 60, "y": 520}], "E": 2}],
+        "path": {}
+      }
+    },
+    "id15": {
+      "Dyad": {
+        "edges": [{"S": 1, "M": [{"x": 60, "y": 500}, {"x": 60, "y": 240}], "E": 2}],
+        "path": {}
+      }
+    },
+    "id16": {
+      "Dyad": {
+        "edges": [{"S": 1, "M": [{"x": 272.5, "y": 525}, {"x": 272.5, "y": 341}], "E": 2}],
+        "path": {}
+      }
+    },
+    "id17": {
+      "Dyad": {
+        "edges": [{"S": 1, "M": [{"x": 420, "y": 341}, {"x": 420, "y": 270}], "E": 2}],
+        "path": {}
+      }
+    },
+    "id18": {
+      "Dyad": {
+        "edges": [
+          {"S": 1, "M": [{"x": 550, "y": 545}], "E": -1},
+          {"S": -1, "M": [{"x": 690, "y": 580}], "E": 2}
+        ],
+        "junctions": [{"x": 550, "y": 580}],
+        "path": {}
+      }
+    },
+    "id19": {
+      "Dyad": {
+        "edges": [{"S": 1, "M": [{"x": 473, "y": 580}, {"x": 690, "y": 580}], "E": 2}],
+        "path": {}
+      }
+    },
+    "id20": {
+      "Dyad": {
+        "edges": [
+          {
+            "S": 1,
+            "M": [{"x": 550, "y": 270}, {"x": 550, "y": 170}, {"x": 420, "y": 170}],
+            "E": -1
+          },
+          {"S": -1, "M": [], "E": 2}
+        ],
+        "junctions": [{"x": 420, "y": 70}],
+        "path": {}
+      }
+    },
+    "id21": {
+      "Dyad": {
+        "edges": [{"S": 1, "M": [{"x": 497, "y": 375}, {"x": 620, "y": 375}], "E": 2}],
+        "path": {}
+      }
+    },
+    "id22": {"Dyad": {"edges": [{"S": 1, "M": [], "E": 2}], "path": {}}},
+    "id23": {
+      "Dyad": {
+        "edges": [{"S": 1, "M": [{"x": 550, "y": 70}, {"x": 550, "y": 160}], "E": 2}],
+        "path": {}
+      }
+    },
+    "id24": {
+      "Dyad": {
+        "edges": [{"S": 1, "M": [{"x": 830, "y": 160}, {"x": 830, "y": 330}], "E": 2}],
+        "path": {}
+      }
+    },
+    "id25": {
+      "Dyad": {
+        "edges": [{"S": 1, "M": [{"x": 310, "y": 600}, {"x": 310, "y": 900}], "E": 2}],
+        "path": {}
+      }
+    },
+    "id26": {
+      "Dyad": {
+        "edges": [{"S": 1, "M": [{"x": 350, "y": 570}, {"x": 350, "y": 750}], "E": 2}],
+        "path": {}
+      }
+    },
+    "id27": {"Dyad": {"edges": [{"S": 1, "M": [], "E": 2}], "path": {}}}
+  }
+}
+end

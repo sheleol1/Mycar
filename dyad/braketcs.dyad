@@ -1,0 +1,39 @@
+component BrakeTCS
+  "Driving slip: positive when the wheel spins"
+  kappa = RealInput()
+  "Requested brake pressure [Pa]"
+  p_cmd = RealOutput()
+
+  "Target driving slip"
+  parameter lambda_target::Real = 0.04
+  "Brake response prediction time [s]"
+  parameter T_p::Time = 0.03
+  "Slip filtering time [s]"
+  parameter T_f::Time = 0.003
+  "Maximum available pressure [Pa]"
+  parameter p_supply::Pressure = 8.9e6
+  "Pressure increase rate [Pa/s]"
+  parameter k_inc::Real = 2.9e7
+  "Pressure release rate [Pa/s]"
+  parameter k_dec::Real = 5.8e7
+
+  variable kappa_f::Real
+  variable kappa_dot::Real
+  variable kappa_pred::Real
+  variable p::Pressure
+  variable rate::Real
+relations
+  initial kappa_f = 0
+  der(kappa_f) = (kappa - kappa_f) / T_f
+  kappa_dot = (kappa - kappa_f) / T_f
+  kappa_pred = kappa + T_p * kappa_dot
+
+  rate = ifelse(kappa_pred > lambda_target, k_inc, -k_dec)
+
+  initial p = 0
+  der(p) = ifelse(
+    p >= p_supply and rate > 0, 0,
+    ifelse(p <= 0 and rate < 0, 0, rate))
+
+  p_cmd = min(max(p, 0), p_supply)
+end

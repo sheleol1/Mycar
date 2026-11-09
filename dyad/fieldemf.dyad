@@ -1,0 +1,37 @@
+
+component FieldEMF
+  "Positive electrical pin"
+  p = Pin() {^p}
+  "Negative electrical pin"
+  n = Pin() {^n}
+  "Rotor shaft"
+  rotor = Spline() {^rotor}
+  "Housing"
+  housing = Spline() {^housing}
+
+  "Magnetic field fraction"
+  field = RealInput() {^field}
+
+  "Torque and back-EMF constant"
+  parameter k::ElectricalTorqueConstant
+
+  variable v::Voltage
+  variable i::Current
+  variable phi::Angle
+  variable w::AngularVelocity
+  variable tau::Torque
+
+relations
+  v = p.v - n.v
+  0 = p.i + n.i
+  i = p.i
+
+  phi = rotor.phi - housing.phi
+  w = der(phi)
+
+  v = field * k * w
+  tau = -field * k * i
+
+  tau = rotor.tau
+  0 = housing.tau + rotor.tau
+end

@@ -1,0 +1,28 @@
+"Gravity force along a sloping road."
+component GradeForce
+  extends TranslationalComponents.Interfaces.PartialForce
+
+  "Road gradient: 0.10 means a 10 percent uphill slope."
+  grade = Dyad.RealInput()
+
+  "Vehicle mass in kg."
+  parameter m::Dyad.Mass = 1400
+
+  "Gravitational acceleration in m/s²."
+  parameter g::Acceleration = 9.80665
+
+relations
+  f = m * g * sin(atan(grade))
+
+metadata {
+  "_links": {
+    "grade": {
+      "Dyad": {
+        "placement": {
+          "diagram": {"x1": -40, "x2": 40, "y1": 460, "y2": 540}
+        }
+      }
+    }
+  }
+}
+end

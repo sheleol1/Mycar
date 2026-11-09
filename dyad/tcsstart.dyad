@@ -1,0 +1,62 @@
+component TCSStart
+  "1 enables brake TCS; 0 disables it"
+  parameter brake_enabled::Real = 1
+  "1 enables engine TCS; 0 disables it"
+  parameter engine_enabled::Real = 1
+
+  throttle = BlockComponents.Sources.Step(
+    height = 1, offset = 0, start_time = 0)
+
+  "Slippery surface"
+  friction = BlockComponents.Sources.Constant(k = 0.2)
+  one = BlockComponents.Sources.Constant(k = 1)
+
+  car = TCSCar()
+  brake_tcs = BrakeTCS()
+  engine_tcs = EngineTCS()
+
+  brake_enable = BlockComponents.Math.Gain(k = brake_enabled)
+  engine_reduction = BlockComponents.Math.Feedback()
+  engine_enable = BlockComponents.Math.Gain(k = engine_enabled)
+  engine_limit = BlockComponents.Math.Feedback()
+relations
+  connect(throttle.y, car.pedal)
+  connect(friction.y, car.mu_scale)
+
+  connect(car.kappa, brake_tcs.kappa, engine_tcs.kappa)
+
+  connect(brake_tcs.p_cmd, brake_enable.u)
+  connect(brake_enable.y, car.p_cmd)
+
+  connect(one.y, engine_reduction.u1, engine_limit.u1)
+  connect(engine_tcs.throttle_limit, engine_reduction.u2)
+  connect(engine_reduction.y, engine_enable.u)
+  connect(engine_enable.y, engine_limit.u2)
+  connect(engine_limit.y, car.u_tcs)
+
+  initial car.wheel.inertia.phi = 0
+  initial car.wheel.inertia.w = 0
+  initial car.body.mass.s = 0
+  initial car.body.mass.v = 0
+
+  initial car.flywheel.w = 900 * pi / 30
+  initial car.flywheel.phi = 0
+  initial car.clutch.spline_b.phi = 0
+  initial car.engine.air.manifold.p = 101325
+end
+
+analysis TCSStartTransient
+  extends TransientAnalysis(
+    stop = 10,
+    alg = ODEAlg.Tsit5(),
+    dtmax = 1e-3,
+    abstol = 1e-5,
+    reltol = 1e-5)
+
+  parameter brake_enabled::Real = 1
+  parameter engine_enabled::Real = 1
+
+  model = TCSStart(
+    brake_enabled = brake_enabled,
+    engine_enabled = engine_enabled)
+end
